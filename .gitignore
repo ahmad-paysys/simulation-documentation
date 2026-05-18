@@ -1,0 +1,9 @@
+# Ignore everything
+*
+
+# But do not ignore these files
+!implementation-plan.md
+!prompt.md
+
+# It is usually good practice to keep the .gitignore itself
+!.gitignore
