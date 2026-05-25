@@ -1,6 +1,8 @@
 # TRS Simulation Sandbox — Per-Story Implementation Report
 <a id="top"></a>
 
+> **⚠️ SUPERSEDED BY [implementation_report.md](implementation_report.md).** This document is kept verbatim as the original input. Where it differs from `implementation_report.md`, the latter wins. Notably: this report points new code at `connection-studio/backend/src/simulation-studio/` — that path is **wrong**; all new Simulation Studio code lives in `rule-studio/backend/src/services/simulation-studio/`. The HK-01 "bucket → suite" rename steps are also obsolete (no bucket tables exist).
+
 ## Release 4 · Rev 2.2 · Single-Rule Simulation Scope
 
 **Integration Testing is excluded from this delivery. All stories and tasks in this report cover the Single-Rule Simulation path only.**

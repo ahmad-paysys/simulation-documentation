@@ -61,6 +61,8 @@ CREATE INDEX idx_sim_suites_primary_txtp
   ON public.trs_simulation_suites(primary_txtp);
 CREATE INDEX idx_sim_suites_tenant_name
   ON public.trs_simulation_suites(tenant_id, name);
+CREATE INDEX idx_sim_suites_tenant_status_updated
+  ON public.trs_simulation_suites(tenant_id, status, updated_at DESC);
 
 CREATE TRIGGER trg_trs_simulation_suites_updated_at
 BEFORE UPDATE ON public.trs_simulation_suites
@@ -336,19 +338,10 @@ CREATE TABLE public.trs_suite_context_sim_pairs (
 CREATE INDEX idx_trs_suite_context_sim_pairs_generation_id
   ON public.trs_suite_context_sim_pairs(generation_id);
 
-CREATE TABLE public.trs_suite_context_sim_payloads (
-  id                 BIGSERIAL PRIMARY KEY,
-  pair_id            BIGINT NOT NULL REFERENCES public.trs_suite_context_sim_pairs(id) ON DELETE CASCADE,
-  payload_role       VARCHAR(16) NOT NULL CHECK (payload_role IN ('context', 'trigger')),
-  source_message_id  BIGINT,
-  payload_json       JSONB NOT NULL,
-  created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT uq_trs_suite_context_sim_payloads
-    UNIQUE (pair_id, payload_role)
-);
-
-CREATE INDEX idx_trs_suite_context_sim_payloads_pair_id
-  ON public.trs_suite_context_sim_payloads(pair_id);
+-- Note: pair-level context/trigger payloads are stored inline on
+-- trs_suite_context_sim_pairs (context_payload_json, trigger_payload_json).
+-- The previously planned trs_suite_context_sim_payloads child table was
+-- dropped from this migration as redundant (see implementation_report.md §3.2).
 
 -- -----------------------------------------------------------------------------
 -- 7) Run lifecycle + result persistence
@@ -489,26 +482,12 @@ CREATE INDEX idx_trs_simulation_run_artifacts_type
   ON public.trs_simulation_run_artifacts(artifact_type);
 
 -- -----------------------------------------------------------------------------
--- 8) Shared TXTP config snapshot table (kept for compatibility with planning APIs)
+-- 8) (Removed) Shared TXTP config snapshot table
+--    The previously planned trs_suite_txtp_configs union table was dropped from
+--    this migration. The role-specific tables (trs_suite_context_txtp_configs,
+--    trs_suite_trigger_txtp_configs) are authoritative and have richer columns.
+--    See implementation_report.md §3.2 for the decision.
 -- -----------------------------------------------------------------------------
-CREATE TABLE public.trs_suite_txtp_configs (
-  id                      BIGSERIAL PRIMARY KEY,
-  generation_id           BIGINT NOT NULL REFERENCES public.trs_suite_generations(id) ON DELETE CASCADE,
-  dataset_role            VARCHAR(16) NOT NULL CHECK (dataset_role IN ('context', 'trigger')),
-  txtp                    VARCHAR(80) NOT NULL,
-  txtp_version            VARCHAR(80) NOT NULL,
-  display_order           INTEGER NOT NULL,
-  message_count           INTEGER NOT NULL DEFAULT 1 CHECK (message_count >= 1),
-  schema_snapshot         JSONB,
-  sample_payload_snapshot JSONB,
-  metadata                JSONB NOT NULL DEFAULT '{}'::jsonb,
-  created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CONSTRAINT uq_trs_suite_txtp_configs
-    UNIQUE (generation_id, dataset_role, txtp, txtp_version, display_order)
-);
-
-CREATE INDEX idx_trs_suite_txtp_configs_generation_id
-  ON public.trs_suite_txtp_configs(generation_id);
 
 -- -----------------------------------------------------------------------------
 -- 9) Documentation comments

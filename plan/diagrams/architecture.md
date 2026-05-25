@@ -1,6 +1,6 @@
 # Simulation Studio — High-Level Architecture
 
-Logical deployment view. `connection-studio/` is shown only because it shares the `admin-service` and the same auth — **no new code lands there**.
+Logical deployment view. `connection-studio/` is intentionally **not** drawn — it is frozen for this initiative (no new files; only existing endpoints may be consumed read-only if needed).
 
 ```mermaid
 flowchart TB

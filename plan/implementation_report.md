@@ -96,8 +96,11 @@ export type RunStatus      = 'ENV_PROVISIONING' | 'RUNNING' | 'COMPLETED' | 'FAI
 export type RunPhase       = 'ENV_PROVISIONING' | 'NETWORK_CREATE' | 'BASE_CONTAINERS_START'
                            | 'ODS_INIT' | 'APP_CONTAINERS_START' | 'TRANSACTION_LOOP' | 'CLEANUP'
                            | 'COMPLETED' | 'FAILED';
-export type ResultBand     = 'good' | 'neutral' | 'bad' | 'error';
-export type FieldStrategy  = 'keep_sample' | 'static' | 'range' | 'generated' | 'null' | 'skip';
+export type ResultBand           = 'good' | 'neutral' | 'bad' | 'error';
+// Three role-specific code sets — DO NOT merge; the DB CHECK constraints differ.
+export type ContextFieldStrategy    = 'keep_sample' | 'static' | 'range' | 'generated' | 'null' | 'skip';
+export type TriggerFieldOverride    = 'static' | 'range' | 'generated' | 'remove' | 'null';
+export type EnrichmentFieldStrategy = 'static' | 'range' | 'generated' | 'null' | 'copy';
 
 // dto/suite.dto.ts
 export class CreateSuiteDto {
