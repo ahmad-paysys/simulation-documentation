@@ -220,6 +220,8 @@ As a rule developer, I can configure a sample message payload for each selected 
 
 **Given** the user has configured payloads for all TXTPs and clicks Next Step, **When** validation passes, **Then** they advance to Step 4 (Enrichment Data) with all payload configurations saved.
 
+> Wizard step canon: 5 numbered steps (1=Rule+TxTp, 2=Context, 3=Trigger, 4=Enrichment, 5=Summary). Screen 6 (Results) is post-stepper and reached after `POST /run`.
+
 ## Assumptions
 
 - The 15-transaction maximum is enforced server-side as well as in the UI.
@@ -236,7 +238,7 @@ As a rule developer, I can define one or more enrichment tables with a JSON payl
 
 ## Acceptance Criteria
 
-**Given** the user is on Step 5 and enters a table name and pastes a JSON payload, **When** they click Save Record, **Then** the record appears in the Saved Enrichment Records table.
+**Given** the user is on Step 4 (Enrichment) and enters a table name and pastes a JSON payload, **When** they click Save Record, **Then** the record appears in the Saved Enrichment Records table.
 
 **Given** the user needs multiple enrichment tables, **When** they repeat the add process, **Then** each additional table appears as a new row in the saved records table.
 
@@ -244,7 +246,7 @@ As a rule developer, I can define one or more enrichment tables with a JSON payl
 
 **Given** a saved enrichment record exists, **When** the user clicks Remove, **Then** the record is deleted from the list.
 
-**Given** enrichment records are saved, **When** the user proceeds to Step 6, **Then** all saved tables are reflected in the suite summary.
+**Given** enrichment records are saved, **When** the user proceeds to Step 5 (Summary), **Then** all saved tables are reflected in the suite summary.
 
 ## Assumptions
 
@@ -263,11 +265,11 @@ As a rule developer, I can review a complete read-only summary of all wizard inp
 
 ## Acceptance Criteria
 
-**Given** the user reaches Step 6, **When** the summary renders, **Then** it shows: Suite Name, Associated Rule, Rule Version, TXTPs, Iteration Number, Enrichment Tables, Context count, Trigger count, and total Valid Payloads.
+**Given** the user reaches Step 5 (Summary), **When** the summary renders, **Then** it shows: Suite Name, Associated Rule, Rule Version, TXTPs, Iteration Number, Enrichment Tables, Context count, Trigger count, and total Valid Payloads.
 
-**Given** the summary is shown, **When** the user clicks Back in the wizard footer, **Then** they return to Step 5 with all data intact.
+**Given** the summary is shown, **When** the user clicks Back in the wizard footer, **Then** they return to Step 4 (Enrichment) with all data intact.
 
-**Given** the user is in edit mode, **When** Step 6 renders, **Then** a warning banner states that saving will create a new iteration without overwriting previous ones.
+**Given** the user is in edit mode, **When** Step 5 (Summary) renders, **Then** a warning banner states that saving will create a new iteration without overwriting previous ones.
 
 **Given** the user clicks Save as Draft, **When** the action completes, **Then** they are returned to the list page and the suite appears with status Draft.
 
@@ -293,7 +295,7 @@ As a rule developer, I can click Run Simulation on the summary screen and be nav
 
 **Given** the run fails before completion, **When** the user is navigated to the Results screen, **Then** a clear failure state is shown with a reason, and no partial results are displayed.
 
-**Given** the Results screen is open, **When** the user reviews the page, **Then** the current run's results appear at the top expanded, with any previous runs for the same bucket listed collapsed below it.
+**Given** the Results screen is open, **When** the user reviews the page, **Then** the current run's results appear at the top expanded, with any previous runs for the same suite listed collapsed below it.
 
 ## Assumptions
 

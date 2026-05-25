@@ -8,7 +8,7 @@ This directory contains all visual reference diagrams for Simulation Studio syst
 
 ### erd.md — Entity Relationship Diagram
 **Format**: Mermaid `erDiagram`  
-**Scope**: PostgreSQL `simulation_studio` database schema (16 tables, all relationships)  
+**Scope**: PostgreSQL `simulation_studio` database schema (17 tables, all relationships)  
 **Purpose**: Single source of truth for data structure; reference when designing queries, writing migrations, or debugging data integrity issues.  
 **Key Relationships**: Suite → Generations → Context/Trigger/Enrichment configs → Generated messages/rows; Suite → Runs → Results; Results → Context links.  
 **Color**: N/A (diagram elements not color-coded)  

@@ -16,9 +16,9 @@ All materials needed to understand, architect, and execute the Simulation Studio
 | [plan/summary-of-report.md](plan/summary-of-report.md) | 75-line executive summary | 5 min |
 | [plan/implementation_report.md](plan/implementation_report.md) | Authoritative technical decisions | 20 min |
 | [plan/branch-plan.md](plan/branch-plan.md) | Git workflow & team collaboration | 15 min |
-| [plan/database-migration.sql](plan/database-migration.sql) | PostgreSQL schema (16 tables) | Reference |
+| [plan/database-migration.sql](plan/database-migration.sql) | PostgreSQL schema (17 tables) | Reference |
 | [plan/trs_simulation_gantt.md](plan/trs_simulation_gantt.md) | 8-day timeline with milestones | Visual |
-| [plan/User-Stories-20260520-EOD.md](plan/User-Stories-20260520-EOD.md) | 16 user stories + acceptance criteria | Reference |
+| [plan/User-Stories-20260520-EOD.md](plan/User-Stories-20260520-EOD.md) | 21 user stories + acceptance criteria | Reference |
 
 ## Architecture Diagrams
 
@@ -64,7 +64,7 @@ All diagrams use Mermaid syntax (GitHub-native rendering). See [plan/diagrams/RE
 - Dev branch: `dev` (protected; PRs only)
 - Main branch: `main` (production releases)
 
-**Database**: New PostgreSQL `simulation_studio` DB with 16 tables (suites, generations, contexts, triggers, enrichment, runs, results).
+**Database**: New PostgreSQL `simulation_studio` DB with 17 tables (suites, generations, contexts, triggers, enrichment, runs, results).
 
 **New Components**: 
 - Backend: SimulationStudioModule (rule-studio), simulation-studio.logic.service.ts (admin-service)
@@ -115,7 +115,7 @@ PostgreSQL `simulation_studio` database with:
 - **Pairing**: `trs_suite_context_sim_pairs` (with inline payloads)
 - **Run lifecycle**: `trs_simulation_runs`, events, results, artifacts, context links
 
-Initialize with [plan/database-migration.sql](plan/database-migration.sql) (idempotent, first-time only).
+Initialize with [plan/database-migration.sql](plan/database-migration.sql) (first-time only; run against a clean database).
 
 ## Document Versions
 
