@@ -1,7 +1,8 @@
 # Simulation Studio — Authoritative Implementation Report
 
+> **Version:** 2.2 · 2026-05-24
 > **Scope:** Single-Rule Simulation, Release 4. Integration Testing is out of scope.
-> **Authority:** This document supersedes `trs_story_implementation_report.original.md` where they differ.
+> **Authority:** This document is the highest-authority source of truth for the Simulation Studio initiative. It supersedes `trs_story_implementation_report.original.md` and `changes-in-plan.md` where they differ.
 > Cross-references: [database-migration.sql](database-migration.sql), [changes-in-plan.md](../changes-in-plan.md).
 
 ---
@@ -54,24 +55,24 @@
 | **Docker daemon access** | **Dev: Unix socket (`/var/run/docker.sock`). Prod: remote TCP+TLS via `DOCKER_HOST` + cert paths.** Both are supported by Dockerode using the same env vars; `RegistryService` is unaffected. | Standard Dockerode pattern. The "decision" is just a deployment toggle. See §9.5. |
 | **Suite-level `ENV_PROVISIONING`** | **Drop from the SM-02 status filter.** | The suite-level `status` enum is `DRAFT/RUNNING/COMPLETED/FAILED/ARCHIVED`. `ENV_PROVISIONING` is a *run-level* phase. Showing it on the suite filter would require either joining the active run on every list query or expanding the suite enum — both are worse than just removing the option. See §9.6. |
 
-### 3.2 Schema changes vs. the supplied SQL
+### 3.2 Schema edits applied to the supplied SQL
 
-Apply these edits before running [database-migration.sql](database-migration.sql):
+The following edits have **already been applied** to [database-migration.sql](database-migration.sql) and reflect the resolved decisions in §3.1. Verify these are present before running the script; no further surgery is required.
 
-1. **Remove** the entire `trs_suite_txtp_configs` block (the table + its index + its comment).
-2. **Remove** the entire `trs_suite_context_sim_payloads` block (the table + its index).
-3. **Add** the composite index for SM-02 list query:
+1. **Removed:** the `trs_suite_txtp_configs` block (table + index + comment). A descriptive comment remains in the SQL explaining the omission.
+2. **Removed:** the `trs_suite_context_sim_payloads` block (table + index). A descriptive comment remains in the SQL explaining the omission.
+3. **Added:** the composite index for SM-02 list query:
    ```sql
    CREATE INDEX idx_sim_suites_tenant_status_updated
      ON public.trs_simulation_suites(tenant_id, status, updated_at DESC);
    ```
-4. (Optional / nice-to-have) Add a 256 KB cap on `metadata` enforced application-side in `PUT /draft`.
+4. (Optional / nice-to-have, not in the SQL) Add a 256 KB cap on `metadata` enforced application-side in `PUT /draft`.
 
 Everything else in the migration is sound.
 
 ### 3.3 Tables required for the in-scope stories
 
-After the §3.2 edits:
+The migration creates 17 tables (after the §3.2 edits are applied — already reflected in the SQL):
 - Aggregate: `trs_simulation_suites`, `trs_suite_generations`
 - Context: `trs_suite_context_txtp_configs`, `trs_suite_context_field_strategies`, `trs_suite_context_generated_messages`
 - Trigger: `trs_suite_trigger_txtp_configs`, `trs_suite_trigger_field_overrides`, `trs_suite_trigger_generated_messages`
@@ -244,7 +245,7 @@ Where omitted, the original story plan stands.
 - No new contracts.
 
 ### T-01 — Persist + dispatch ([orig](trs_story_implementation_report.original.md#t-01--atomically-persist-wizard-data-and-dispatch-orchestrator-on-run))
-- Single admin handler `handleSaveIterationTransactional`: open a pg transaction, `pg_advisory_xact_lock(hashtext(suite_id||generation_id))`, compute next `run_number`, insert all rows, commit.
+- Single admin handler `handleSaveIterationTransactional`: open a pg transaction, `pg_advisory_xact_lock(hashtext(suite_id::text || ':' || generation_id::text))`, compute next `run_number`, insert all rows, commit.
 - Dispatch is fire-and-forget in the controller (`void this.orchestratorService.dispatch(runId)`).
 
 ### T-02 — Orchestrator ([orig](trs_story_implementation_report.original.md#t-02--orchestrate-an-isolated-docker-container-lifecycle-per-run))

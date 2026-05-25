@@ -31,17 +31,17 @@ Share with your team before development starts; reference when opening PRs or ma
 
 ### database-migration.sql
 **Purpose**: PostgreSQL schema initialization script for a blank database.  
-First-time setup of all 16 tables covering suite aggregates, generation iterations, context/trigger/enrichment configurations, data payloads, simulation runs, and result tracking.  
-Apply to the `simulation_studio` database before any code runs; run only once (idempotent).
+First-time setup of all 17 tables covering suite aggregates, generation iterations, context/trigger/enrichment configurations, data payloads, simulation runs, and result tracking.  
+Apply to the `simulation_studio` database before any code runs; run only once (not idempotent — use a clean database).
 
 ### trs_simulation_gantt.md
 **Purpose**: Visual 8-day timeline mapping stories to developer effort and interdependencies.  
-Mermaid Gantt chart showing housekeeping stories (HK-01–HK-05), user story work (SM-01–SM-08, S1-01–S6-01), and critical path dependencies.  
-Used during sprint planning and for tracking milestone completion (e.g., "Auth module complete by Day 3").
+Mermaid Gantt chart showing housekeeping stories (HK-01–HK-05), wizard stories (SM-01–SM-05, S1-01–S5-01), and run/result/rerun/transaction stories (SR-01–SR-03, RR-01–RR-02, T-01–T-05), plus critical path dependencies.  
+Used during sprint planning and for tracking milestone completion (e.g., "wizard backbone complete by Day 3").
 
 ### User-Stories-20260520-EOD.md
 **Purpose**: Detailed acceptance criteria and test scenarios for each user story.  
-16 functional and non-functional stories covering suite creation, listing, drafting, context generation, run execution, result analysis, and advanced features (clone, quick-rerun, integration testing excluded).  
+21 functional and non-functional stories covering suite creation, listing, drafting, context generation, run execution, result analysis, and advanced features (clone, quick-rerun, integration testing excluded).  
 Each story includes type, user narrative, AC, assumptions, and task breakdown; used for development task assignment and QA sign-off.
 
 ### trs_story_implementation_report.original.md
@@ -165,7 +165,7 @@ Before any change to this directory:
 ## Quick Sanity Checks
 
 ✓ All `.md` files render natively on GitHub (Mermaid, tables, links)  
-✓ `database-migration.sql` is idempotent and tested against blank PostgreSQL DB  
+✓ `database-migration.sql` is first-time init only (not idempotent — use a clean database)  
 ✓ Diagram boxes are color-coded: blue = new, yellow = reused, gray = untouched  
 ✓ All relative links (`[file](path)`) resolve correctly  
 ✓ Terminology (suite, generation, run, tenant, txtp, etc.) is consistent across all docs  

@@ -15,12 +15,12 @@ Full report: [implementation_report.md](implementation_report.md)
 
 ## Database
 
-The supplied `database-migration.sql` is a clean first-time init — HK-01's bucket→suite renames are obsolete (no such tables exist).
+The supplied `database-migration.sql` is a clean first-time init that creates 17 tables — HK-01's bucket→suite renames are obsolete (no such tables exist).
 
-Required edits before applying:
-1. **Drop** `trs_suite_txtp_configs` (redundant union of role-specific tables).
-2. **Drop** `trs_suite_context_sim_payloads` (duplicates inline JSON on `trs_suite_context_sim_pairs`).
-3. **Add** `CREATE INDEX idx_sim_suites_tenant_status_updated ON trs_simulation_suites(tenant_id, status, updated_at DESC);`
+Schema edits applied to the SQL (already present — verify before running):
+1. **Dropped** `trs_suite_txtp_configs` (redundant union of role-specific tables).
+2. **Dropped** `trs_suite_context_sim_payloads` (duplicates inline JSON on `trs_suite_context_sim_pairs`).
+3. **Added** `CREATE INDEX idx_sim_suites_tenant_status_updated ON trs_simulation_suites(tenant_id, status, updated_at DESC);`
 
 ## Existing patterns being reused (no duplication)
 
