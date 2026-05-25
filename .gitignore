@@ -2,6 +2,7 @@
 *
 
 # But do not ignore these files
+!README.md
 !implementation-plan.md
 !prompt.md
 
