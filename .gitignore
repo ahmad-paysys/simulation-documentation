@@ -5,5 +5,11 @@
 !implementation-plan.md
 !prompt.md
 
+# Unignore the plan directory itself
+!plan/
+
+# Unignore everything inside plan recursively
+!plan/**
+
 # It is usually good practice to keep the .gitignore itself
 !.gitignore
