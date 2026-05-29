@@ -20,9 +20,9 @@ Distills the 75-line executive summary covering code locations, API surface, dat
 Read this first if you have 5 minutes; it answers "where does code live?" and "what's new vs. reused?"
 
 ### implementation_report.md
-**Purpose**: Authoritative single source of truth for all technical decisions, code structure, and migration path.  
-Comprehensive 400+ line document covering codebase baseline, architecture decisions, database design with rationale, shared contracts, API specification, key services, and deferred work.  
-Read this when you need to understand *why* a decision was made or when implementing a specific module.
+**Purpose**: Single authoritative implementation guide covering architecture decisions, database design, shared contracts, AND the full per-story implementation breakdown.  
+Comprehensive 2000+ line document with codebase baseline, architecture decisions, database schema with rationale, shared DTO contracts, API specification, working day calendar, story index, per-story implementation details (Frontend, API, Backend, Admin Service, Database, Prerequisites, Task Division for all 21+ stories), developer cross-reference table, refactors, risks, resolved ambiguities, and definition of done.  
+Developers use the per-story section matching their assignment as the primary work order. Tech leads use the architecture summary and cross-reference table for review prioritisation.
 
 ### branch-plan.md
 **Purpose**: Git workflow strategy and team collaboration guidelines for multi-developer, multi-repository commercial development.  
@@ -45,8 +45,8 @@ Used during sprint planning and for tracking milestone completion (e.g., "wizard
 Each story includes type, user narrative, AC, assumptions, and task breakdown; used for development task assignment and QA sign-off.
 
 ### trs_story_implementation_report.original.md
-**Purpose**: Legacy reference document from Release 4, Rev 2.2.  
-Earlier iteration of implementation guidance; superseded by `implementation_report.md` where they differ.  
+**Purpose**: Legacy reference document from the initial planning phase.  
+Earlier iteration of implementation guidance; fully superseded by `implementation_report.md`.  
 Keep for historical record; do not use for new decisions.
 
 ---
@@ -140,7 +140,7 @@ Before any change to this directory:
 
 | Document | Version | Last Updated |
 |----------|---------|--------------|
-| implementation_report.md | 2.2 | 2026-05-24 |
+| implementation_report.md | 4.0 | 2026-05-29 |
 | summary-of-report.md | 1.0 | 2026-05-24 |
 | branch-plan.md | 1.0 | 2026-05-24 |
 | database-migration.sql | v2.2 | 2026-05-24 |
