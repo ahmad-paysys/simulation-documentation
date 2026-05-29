@@ -1,9 +1,9 @@
 # Simulation Studio — Authoritative Implementation Report
 
-> **Version:** 2.2 · 2026-05-24
+> **Version:** 3.0 · 2026-05-29
 > **Scope:** Single-Rule Simulation, Release 4. Integration Testing is out of scope.
-> **Authority:** This document is the highest-authority source of truth for the Simulation Studio initiative. It supersedes `trs_story_implementation_report.original.md` and `changes-in-plan.md` where they differ.
-> Cross-references: [database-migration.sql](database-migration.sql), [changes-in-plan.md](../changes-in-plan.md).
+> **Authority:** This document is the authoritative source of technical decisions, architecture, and contracts for the Simulation Studio initiative.
+> Cross-references: [database-migration.sql](database-migration.sql), [implementation_plan.md](implementation_plan.md) (per-story breakdown).
 
 ---
 
@@ -12,7 +12,7 @@
 | Concern | Reality on disk | Notes |
 |---|---|---|
 | **Backend host for ALL new Simulation Studio code** | [rule-studio/backend/](../rule-studio/backend/) (NestJS) | Top-level module path: `rule-studio/backend/src/services/simulation-studio/`. Matches existing pattern (`services/simulation/`, `services/rules/`, etc. — see [app.module.ts](../rule-studio/backend/src/app.module.ts)). |
-| **`connection-studio/`** | Frozen for this initiative | No new files. Only **read-only** consumer of any of its existing HTTP endpoints if required. The original report's `connection-studio/backend/src/simulation-studio/` path is **wrong** and was discarded. |
+| **`connection-studio/`** | Frozen for this initiative | No new files. Only **read-only** consumer of any of its existing HTTP endpoints if required. |
 | **Frontend** | [rule-studio/frontend/](../rule-studio/frontend/) (Vite + React + RTK Query) | New pages under `pages/SimulationStudio/`. |
 | **Admin Service** | [admin-service/](../admin-service/) (Fastify) | Owns all Postgres persistence. Repository pattern: free functions in `repositories/*.repository.ts`, called from `services/*.logic.service.ts`, handlers in `app.controller.ts`, routes in `router.ts`. New work follows this exact layout. |
 | **Auth** | `TazamaAuthGuard` + `RequireAnyClaims(...)` ([rule-studio/backend/src/guards/tazama-auth.guard.ts](../rule-studio/backend/src/guards/tazama-auth.guard.ts), [decorators/auth.decorator.ts](../rule-studio/backend/src/decorators/auth.decorator.ts)) | `AuthenticatedUser` exposes `tenantId`, `userId`, `actorEmail`, `token.tokenString`. |
@@ -44,7 +44,7 @@
 
 [database-migration.sql](database-migration.sql) is a **first-time init** (`BEGIN; CREATE TABLE …; COMMIT;`). HK-01's "bucket → suite rename" steps are **obsolete**.
 
-### 3.1 Resolved decisions (was §9 in v1; these are now locked)
+### 3.1 Resolved decisions (locked)
 
 | Decision | Outcome | Rationale (short) |
 |---|---|---|
@@ -193,82 +193,82 @@ Critical path before any story work:
 4. **HK-04** — `PUT /suites/:id/draft` endpoint + admin handler (`jsonb_set` UPDATE).
 5. **HK-05** — Docker Hub auth env vars + `RegistryService`.
 
-Story work (SM-01 … SR-03, T-01 … T-04, RR-01/RR-02, SM-05) then proceeds per the original `trs_story_implementation_report.original.md` schedule, against this report's contracts.
+Story work (SM-01 … SR-03, T-01 … T-04, RR-01/RR-02, SM-05) then proceeds per the schedule in [implementation_plan.md](implementation_plan.md), against this report's contracts.
 
 ---
 
 ## 6. Per-Story Validation (Deltas Only)
 
-Where omitted, the original story plan stands.
+For full per-story implementation breakdown, see [implementation_plan.md](implementation_plan.md). This section captures only the technical decisions and constraints that override or supplement the story-level detail.
 
-### HK-01 — DB migration ([orig](trs_story_implementation_report.original.md#hk-01--database-schema-migration))
+### HK-01 — DB migration ([detail](implementation_plan.md#hk-01--database-schema-migration))
 - No bucket → suite renames. Treat the migration as clean first-time create. Skip Step 1 entirely.
 - Apply edits in §3.2.
 
-### HK-02 — Backend Module ([orig](trs_story_implementation_report.original.md#hk-02--rs-backend-nestjs-module-scaffolding))
-- **Module path is `rule-studio/backend/src/services/simulation-studio/`.** Original report's `connection-studio/backend/...` path is wrong and overridden by this report.
+### HK-02 — Backend Module ([detail](implementation_plan.md#hk-02--rs-backend-nestjs-module-scaffolding))
+- **Module path is `rule-studio/backend/src/services/simulation-studio/`.** All new backend code lives here — `connection-studio/` is untouched.
 - `AdminServiceClient` is already a provider; extend it with new methods (see §7) — do not create a second client.
 
-### HK-03 — Frontend Scaffolding ([orig](trs_story_implementation_report.original.md#hk-03--frontend-project-scaffolding))
+### HK-03 — Frontend Scaffolding ([detail](implementation_plan.md#hk-03--frontend-project-scaffolding))
 - Confirmed missing: `Stepper`, `FieldConfigurator` — create.
 - `useFilters` exists at `rule-studio/frontend/src/hooks/useFilters.ts`.
 - Add `VITE_SIMULATION_STUDIO_API_URL` to [.env.example](../rule-studio/frontend/.env.example).
 
-### HK-04 — Draft persistence ([orig](trs_story_implementation_report.original.md#hk-04--per-screen-draft-persistence-infrastructure))
+### HK-04 — Draft persistence ([detail](implementation_plan.md#hk-04--per-screen-draft-persistence-infrastructure))
 - Plan's `jsonb_set` SQL is correct. Cap `data` size at the handler boundary (256 KB).
 
-### HK-05 — Docker Hub auth ([orig](trs_story_implementation_report.original.md#hk-05--docker-hub-authentication))
-- Env vars added to a validation module if rule-studio backend has one; otherwise consumed directly via `ConfigService.get`. (The legacy connection-studio `env.validation.ts` is **not** the target.)
+### HK-05 — Docker Hub auth ([detail](implementation_plan.md#hk-05--docker-hub-authentication))
+- Env vars added to a validation module if rule-studio backend has one; otherwise consumed directly via `ConfigService.get`.
 
-### SM-01 — Create suite + wizard ([orig](trs_story_implementation_report.original.md#sm-01--create-a-new-simulation-suite-via-simulation-studio))
+### SM-01 — Create suite + wizard ([detail](implementation_plan.md#sm-01--create-a-new-simulation-suite-via-simulation-studio))
 - Stepper has **5** steps; Screen 6 is post-stepper (canon §4).
 - `ContextGenerationService` AJV cache local to `rule-studio/backend` (already an AJV consumer).
 
-### SM-02 — List ([orig](trs_story_implementation_report.original.md#sm-02--view-all-simulation-suites-in-a-searchable-list))
+### SM-02 — List ([detail](implementation_plan.md#sm-02--view-all-simulation-suites-in-a-searchable-list))
 - `PaginatedResult<T>` from `@tazama-lf/tcs-lib` — reuse.
 - Drop `ENV_PROVISIONING` from suite-status filter (§3.1 decision).
 
-### S1-01 / S1-02 — Rule + metadata ([orig](trs_story_implementation_report.original.md#s1-01--select-a-rule-and-transaction-version-for-the-suite))
+### S1-01 / S1-02 — Rule + metadata ([detail](implementation_plan.md#s1-01--select-a-rule-and-transaction-version-for-the-suite))
 - `tcs_config` filter is `status IN ('STATUS_04_APPROVED','STATUS_06_EXPORTED')` — open question: confirm with product team which `status` value(s) make a TXTP "simulation-ready" (canon §13).
 
-### S2-01 — Context data ([orig](trs_story_implementation_report.original.md#s2-01--configure-context-data))
+### S2-01 — Context data ([detail](implementation_plan.md#s2-01--configure-context-data))
 - Three RS endpoints fan out to admin's `getConfigByTransactionType`. Add it to `AdminServiceClient` (a sibling of the existing `getPayloadByTransactionType`).
 - Persist nothing to child tables on Next — only `metadata.wizardDraft.screen2`.
 
-### S3-01 — Trigger data ([orig](trs_story_implementation_report.original.md#s3-01--configure-and-preview-simulation-trigger-transactions))
+### S3-01 — Trigger data ([detail](implementation_plan.md#s3-01--configure-and-preview-simulation-trigger-transactions))
 - 15-message cap enforced server-side inside `saveIterationTransactional`.
 
-### S4-01 — Enrichment ([orig](trs_story_implementation_report.original.md#s4-01--define-one-or-more-enrichment-tables))
+### S4-01 — Enrichment ([detail](implementation_plan.md#s4-01--define-one-or-more-enrichment-tables))
 - Reuse `validateTableName` at [admin-service/src/utils/enrichment-utils.ts](../admin-service/src/utils/enrichment-utils.ts) in both `PUT /draft` validation and `saveIterationTransactional`.
 
-### S5-01 — Summary + save ([orig](trs_story_implementation_report.original.md#s5-01--review-the-full-suite-summary-before-saving))
+### S5-01 — Summary + save ([detail](implementation_plan.md#s5-01--review-the-full-suite-summary-before-saving))
 - No new contracts.
 
-### T-01 — Persist + dispatch ([orig](trs_story_implementation_report.original.md#t-01--atomically-persist-wizard-data-and-dispatch-orchestrator-on-run))
+### T-01 — Persist + dispatch ([detail](implementation_plan.md#t-01--atomically-persist-wizard-data-and-dispatch-orchestrator-on-run))
 - Single admin handler `handleSaveIterationTransactional`: open a pg transaction, `pg_advisory_xact_lock(hashtext(suite_id::text || ':' || generation_id::text))`, compute next `run_number`, insert all rows, commit.
 - Dispatch is fire-and-forget in the controller (`void this.orchestratorService.dispatch(runId)`).
 
-### T-02 — Orchestrator ([orig](trs_story_implementation_report.original.md#t-02--orchestrate-an-isolated-docker-container-lifecycle-per-run))
+### T-02 — Orchestrator ([detail](implementation_plan.md#t-02--orchestrate-an-isolated-docker-container-lifecycle-per-run))
 - Add `dockerode` to `rule-studio/backend/package.json`.
 - Daemon: socket in dev, TCP+TLS in prod via env (§3.1 decision).
 - Pin image by SHA256 digest from `RegistryService.verifyImage()` at dispatch time.
 - All containers labelled `run_id=<id>` for T-04 crash recovery.
 
-### T-03 — Per-transaction result write ([orig](trs_story_implementation_report.original.md#t-03--persist-one-result-row-per-sim-transaction))
+### T-03 — Per-transaction result write ([detail](implementation_plan.md#t-03--persist-one-result-row-per-sim-transaction))
 - One `INSERT INTO trs_simulation_run_results` per transaction immediately after nats-utilities response.
 - `…/status` returns `partialResults` for future streaming use; today Screen 6 only displays on terminal state.
 
-### T-04 — Failure & recovery ([orig](trs_story_implementation_report.original.md#t-04--handle-container-startup-failures-and-run-timeouts-gracefully))
+### T-04 — Failure & recovery ([detail](implementation_plan.md#t-04--handle-container-startup-failures-and-run-timeouts-gracefully))
 - Crash-recovery scan keyed off the `run_id` Docker label (set in T-02).
 
-### SR-01 / SR-02 / SR-03 — Results UI ([orig](trs_story_implementation_report.original.md#sr-01--run-a-simulation-and-observe-results-upon-completion))
+### SR-01 / SR-02 / SR-03 — Results UI ([detail](implementation_plan.md#sr-01--run-a-simulation-and-observe-results-upon-completion))
 - 2 s polling cadence; stop on terminal state.
 - Stat cards (Total Iterations, Latest Success Rate, Total Messages Processed, Active Dataset) served by **dedicated** `GET /suites/:id/runs/summary` — cleaner cache invalidation than overloading the list response.
 
-### SM-03 / SM-04 / SM-05 — Detail / rerun / clone ([orig](trs_story_implementation_report.original.md#sm-03--view-suite-details-and-iteration-history))
+### SM-03 / SM-04 / SM-05 — Detail / rerun / clone ([detail](implementation_plan.md#sm-03--view-suite-details-and-iteration-history))
 - Clone-with-results runs in one admin transaction copying `trs_simulation_runs` + `trs_simulation_run_results` + `trs_simulation_run_result_context_links`.
 
-### RR-01 / RR-02 — Quick rerun ([orig](trs_story_implementation_report.original.md#rr-01--rerun-a-past-iteration-from-simulation-result-page))
+### RR-01 / RR-02 — Quick rerun ([detail](implementation_plan.md#rr-01--rerun-a-past-iteration-from-simulation-result-page))
 - Rebuild `SingleRuleEnvSpec` from persisted generation rows.
 - Run-number race: same advisory lock as T-01.
 
@@ -309,7 +309,7 @@ No existing route, page, or DTO is modified beyond these additive changes. **`co
 
 ## 9. Resolved Ambiguities (Reference)
 
-Originally listed as open in v1; now decided. Kept here for traceability.
+These decisions were originally open during initial planning; now decided and locked. Kept here for traceability.
 
 ### 9.1 `trs_suite_txtp_configs` — DROP
 **What it was:** A second TXTP config table with a `dataset_role` discriminator overlapping `trs_suite_context_txtp_configs` + `trs_suite_trigger_txtp_configs`.
