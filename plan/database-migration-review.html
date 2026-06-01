@@ -510,6 +510,354 @@
       border-color: #6b8ca9;
     }
 
+    /* ===== Sticky sidebar TOC + collapsible <details> sections ===== */
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    @media (min-width: 1024px) {
+      .layout {
+        grid-template-columns: 240px minmax(0, 1fr);
+      }
+    }
+
+    .toc-sidebar {
+      position: static;
+    }
+
+    @media (min-width: 1024px) {
+      .toc-sidebar {
+        position: sticky;
+        top: 18px;
+        max-height: calc(100vh - 36px);
+        overflow-y: auto;
+      }
+    }
+
+    .toc-sidebar .toc-inner {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 12px;
+    }
+
+    .toc-sidebar h2 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin: 0 0 10px;
+      color: var(--muted);
+    }
+
+    .toc-sidebar ol {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      counter-reset: toc;
+    }
+
+    .toc-sidebar li {
+      margin: 0 0 4px;
+    }
+
+    .toc-sidebar a {
+      display: block;
+      text-decoration: none;
+      color: var(--ink);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 0.85rem;
+      line-height: 1.3;
+      transition: background 140ms ease, border-color 140ms ease;
+    }
+
+    .toc-sidebar a:hover,
+    .toc-sidebar a:focus-visible {
+      background: rgba(11, 110, 153, 0.08);
+      border-color: var(--border);
+    }
+
+    .toc-sidebar .toc-num {
+      display: inline-block;
+      width: 1.5em;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Hide the old in-flow .toc when the new sidebar is present */
+    .toc-legacy {
+      display: none !important;
+    }
+
+    /* Collapsible section cards */
+    details.section-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 0;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    details.section-card > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+      transition: background 140ms ease;
+    }
+
+    details.section-card > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.section-card > summary:hover {
+      background: rgba(11, 110, 153, 0.04);
+    }
+
+    details.section-card > summary::before {
+      content: "";
+      flex: 0 0 auto;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 5px 0 5px 7px;
+      border-color: transparent transparent transparent var(--muted);
+      transform: rotate(0deg);
+      transition: transform 140ms ease;
+    }
+
+    details.section-card[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    details.section-card > summary h2,
+    details.section-card > summary h3 {
+      margin: 0;
+      font-size: 1.18rem;
+      color: var(--ink);
+    }
+
+    details.section-card > .section-body {
+      padding: 0 18px 16px;
+    }
+
+    /* Per-table cards inside the matrix become <details> too */
+    details.table-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 14px 0;
+      overflow: hidden;
+      background: var(--panel);
+    }
+
+    details.table-card > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 10px 12px;
+      background: linear-gradient(90deg, #f4fafc, #f8fdff);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+    }
+
+    details.table-card > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    details.table-card > summary::before {
+      content: "";
+      flex: 0 0 auto;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 5px 0 5px 7px;
+      border-color: transparent transparent transparent var(--muted);
+      transform: rotate(0deg);
+      transition: transform 140ms ease;
+    }
+
+    details.table-card[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    details.table-card > summary .summary-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    details.table-card > summary h3 {
+      margin: 0;
+      font-size: 1.03rem;
+      color: var(--ink);
+    }
+
+    details.table-card > summary p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    details.table-card > .table-body {
+      padding: 10px 12px 12px;
+      overflow: auto;
+    }
+
+    /* ===== Solar mode (Solarized Light palette) ===== */
+    html[data-theme="solar"] {
+      --bg: #fdf6e3;
+      --panel: #fdf6e3;
+      --ink: #586e75;
+      --muted: #93a1a1;
+      --brand: #268bd2;
+      --brand-2: #2aa198;
+      --warn: #b58900;
+      --danger: #dc322f;
+      --ok: #859900;
+      --border: #eee8d5;
+      --shadow: 0 6px 18px rgba(101, 123, 131, 0.18);
+      --page-bg:
+        radial-gradient(circle at 10% 10%, rgba(181, 137, 0, 0.10), transparent 32%),
+        radial-gradient(circle at 90% 10%, rgba(38, 139, 210, 0.10), transparent 32%),
+        linear-gradient(180deg, #fdf6e3, #f5efd7 70%, #eee8d5);
+    }
+
+    html[data-theme="solar"] .hero {
+      border-color: #d9d2bb;
+      background:
+        linear-gradient(120deg, #fbf3d5, #fefbea 52%, #fdf6e3),
+        repeating-linear-gradient(
+          -45deg,
+          rgba(181, 137, 0, 0.06) 0,
+          rgba(181, 137, 0, 0.06) 8px,
+          rgba(255, 255, 255, 0) 8px,
+          rgba(255, 255, 255, 0) 16px
+        );
+    }
+
+    html[data-theme="solar"] .hero h1 {
+      color: #586e75;
+    }
+
+    html[data-theme="solar"] .hero p {
+      color: #657b83;
+    }
+
+    html[data-theme="solar"] .meta .kpi {
+      background: #fbf3d5;
+      border-color: #e6dfc6;
+    }
+
+    html[data-theme="solar"] h2,
+    html[data-theme="solar"] h3 {
+      color: #586e75;
+    }
+
+    html[data-theme="solar"] p,
+    html[data-theme="solar"] li {
+      color: #586e75;
+    }
+
+    html[data-theme="solar"] .note {
+      background: #faf3d4;
+      color: #586e75;
+      border-left-color: #268bd2;
+    }
+
+    html[data-theme="solar"] .warn {
+      background: #fbedc6;
+      border-left-color: #b58900;
+    }
+
+    html[data-theme="solar"] .danger {
+      background: #fadcd9;
+      border-left-color: #dc322f;
+    }
+
+    html[data-theme="solar"] .ok {
+      background: #edf2cf;
+      border-left-color: #859900;
+    }
+
+    html[data-theme="solar"] th,
+    html[data-theme="solar"] td {
+      border-color: #e6dfc6;
+    }
+
+    html[data-theme="solar"] th {
+      background: #f5efd7;
+      color: #586e75;
+    }
+
+    html[data-theme="solar"] .matrix-index a,
+    html[data-theme="solar"] .toc-sidebar a {
+      color: #586e75;
+    }
+
+    html[data-theme="solar"] details.table-card > summary {
+      background: linear-gradient(90deg, #f5efd7, #faf3d4);
+    }
+
+    html[data-theme="solar"] details.section-card > summary:hover,
+    html[data-theme="solar"] .toc-sidebar a:hover,
+    html[data-theme="solar"] .toc-sidebar a:focus-visible {
+      background: rgba(181, 137, 0, 0.10);
+    }
+
+    html[data-theme="solar"] .footer {
+      color: #657b83;
+    }
+
+    html[data-theme="solar"] #theme-toggle {
+      background: #fbf3d5;
+      border-color: #d9d2bb;
+      color: #586e75;
+    }
+
+    html[data-theme="solar"] #theme-toggle:hover {
+      background: #f0e8c4;
+      border-color: #b58900;
+    }
+
+    /* Dark mode also needs to dress the new <details> + sidebar */
+    html[data-theme="dark"] details.section-card,
+    html[data-theme="dark"] details.table-card,
+    html[data-theme="dark"] .toc-sidebar .toc-inner {
+      background: #132434;
+      border-color: #3a5366;
+    }
+
+    html[data-theme="dark"] details.table-card > summary {
+      background: linear-gradient(90deg, #1b3448, #1f394f);
+      border-bottom-color: #3c5a71;
+    }
+
+    html[data-theme="dark"] details.section-card > summary:hover,
+    html[data-theme="dark"] .toc-sidebar a:hover,
+    html[data-theme="dark"] .toc-sidebar a:focus-visible {
+      background: rgba(128, 181, 216, 0.10);
+      border-color: #3a5366;
+    }
+
+    html[data-theme="dark"] .toc-sidebar a {
+      color: #d9e9f5;
+    }
+
     @media (max-width: 900px) {
       .meta {
         grid-template-columns: repeat(2, minmax(120px, 1fr));
@@ -549,19 +897,9 @@
       </div>
     </header>
 
-    <nav class="toc">
-      <a href="#executive-summary">Executive Summary</a>
-      <a href="#evidence">Evidence Base</a>
-      <a href="#findings">Unused and Duplicate Analysis</a>
-      <a href="#rule-identity">rule_repo vs rule_name</a>
-      <a href="#nf3">3NF Assessment</a>
-      <a href="#simplification">Simplification Plan</a>
-      <a href="#endpoints">Endpoint Coverage</a>
-      <a href="#matrix">Table and Column Matrix</a>
-    </nav>
-
-    <section id="executive-summary">
-      <h2>Executive Summary</h2>
+    <details class="section-card" id="executive-summary" open>
+      <summary><h2>1. Executive Summary</h2></summary>
+      <div class="section-body">
       <div class="note ok">
         The schema is structurally strong for auditability and deterministic replay. Most denormalized elements are intentional snapshots.
       </div>
@@ -572,10 +910,31 @@
         <li>3NF is mostly preserved at entity level; controlled denormalization exists for performance and immutability.</li>
         <li>Highest risk is not schema correctness, but delivery drift: large portions of schema are ahead of currently implemented endpoints.</li>
       </ul>
-    </section>
+      </div>
+    </details>
 
-    <section id="evidence">
-      <h2>Evidence Base</h2>
+    <div class="layout">
+      <aside class="toc-sidebar" aria-label="Table of contents">
+        <nav class="toc-inner">
+          <h2>Contents</h2>
+          <ol>
+            <li><a href="#executive-summary"><span class="toc-num">1.</span>Executive Summary</a></li>
+            <li><a href="#evidence"><span class="toc-num">2.</span>Evidence Base</a></li>
+            <li><a href="#findings"><span class="toc-num">3.</span>Unused and Duplicate Analysis</a></li>
+            <li><a href="#rule-identity"><span class="toc-num">4.</span>rule_repo vs rule_name</a></li>
+            <li><a href="#nf3"><span class="toc-num">5.</span>3NF Assessment</a></li>
+            <li><a href="#simplification"><span class="toc-num">6.</span>Simplification Plan</a></li>
+            <li><a href="#endpoints"><span class="toc-num">7.</span>Endpoint Coverage</a></li>
+            <li><a href="#matrix"><span class="toc-num">8.</span>Table and Column Matrix</a></li>
+          </ol>
+        </nav>
+      </aside>
+
+      <main class="layout-main">
+
+    <details class="section-card" id="evidence">
+      <summary><h2>2. Evidence Base</h2></summary>
+      <div class="section-body">
       <p>Findings are grounded in migration DDL, currently implemented endpoints, repository SQL, and planning docs.</p>
       <h3>Runtime Evidence</h3>
       <ul class="evidence-list">
@@ -621,10 +980,12 @@
         <li>plan/trs_story_implementation_report.original.md:242</li>
         <li>plan/trs_story_implementation_report.original.md:862</li>
       </ul>
-    </section>
+      </div>
+    </details>
 
-    <section id="findings">
-      <h2>Unused and Duplicate Analysis</h2>
+    <details class="section-card" id="findings">
+      <summary><h2>3. Unused and Duplicate Analysis</h2></summary>
+      <div class="section-body">
       <div class="note danger">
         Severity High: The migration provisions 17 tables, but runtime code currently references only trs_simulation_suites. This is a delivery gap risk, not a DDL defect.
       </div>
@@ -646,10 +1007,12 @@
       <div class="note warn">
         Recommendation: keep snapshot duplicates that protect determinism/auditability, but classify each duplicate as either "performance cache", "immutability snapshot", or "remove candidate" and enforce owner-level write rules.
       </div>
-    </section>
+      </div>
+    </details>
 
-    <section id="rule-identity">
-      <h2>rule_repo vs rule_name</h2>
+    <details class="section-card" id="rule-identity">
+      <summary><h2>4. rule_repo vs rule_name</h2></summary>
+      <div class="section-body">
       <p><strong>They serve different concerns and should not be merged.</strong></p>
       <table class="tight">
         <thead>
@@ -678,10 +1041,12 @@
       <div class="note">
         Practical model: keep both fields, enforce consistency at write boundary, and optionally add a canonical rule_id in future to reduce semantic ambiguity while retaining snapshot columns.
       </div>
-    </section>
+      </div>
+    </details>
 
-    <section id="nf3">
-      <h2>3NF Assessment</h2>
+    <details class="section-card" id="nf3">
+      <summary><h2>5. 3NF Assessment</h2></summary>
+      <div class="section-body">
       <p>Overall verdict: <strong>3NF with intentional, controlled denormalization for snapshots and query performance.</strong></p>
       <table>
         <thead>
@@ -696,10 +1061,12 @@
       <div class="note ok">
         No severe transitive-dependency anti-patterns were found that require immediate table redesign. Most deviations are intentional snapshot/cache fields.
       </div>
-    </section>
+      </div>
+    </details>
 
-    <section id="simplification">
-      <h2>Simplification Plan (No DDL Change Applied)</h2>
+    <details class="section-card" id="simplification">
+      <summary><h2>6. Simplification Plan (No DDL Change Applied)</h2></summary>
+      <div class="section-body">
       <table>
         <thead>
           <tr>
@@ -742,10 +1109,12 @@
           </tr>
         </tbody>
       </table>
-    </section>
+      </div>
+    </details>
 
-    <section id="endpoints">
-      <h2>Endpoint Coverage Snapshot</h2>
+    <details class="section-card" id="endpoints">
+      <summary><h2>7. Endpoint Coverage Snapshot</h2></summary>
+      <div class="section-body">
       <table class="tight">
         <thead>
           <tr>
@@ -806,17 +1175,23 @@
           </tr>
         </tbody>
       </table>
-    </section>
+      </div>
+    </details>
 
-    <section id="matrix">
-      <h2>Table and Column Matrix</h2>
+    <details class="section-card" id="matrix">
+      <summary><h2>8. Table and Column Matrix</h2></summary>
+      <div class="section-body">
       <p>
         Each row includes data type, practical size limit, key constraints, and endpoint usage status.
         Usage status legend: implemented, planned, internal planned, not evidenced.
       </p>
       <div class="matrix-index" id="matrix-index"></div>
       <div id="matrix-container"></div>
-    </section>
+      </div>
+    </details>
+
+      </main>
+    </div>
 
     <div class="footer">
       Review generated from migration and runtime code inspection. No source SQL was changed.
@@ -1773,13 +2148,14 @@ CREATE TABLE public.trs_simulation_run_artifacts (
             "</tr>";
         }).join("");
 
-        return "<article class=\"table-card\" id=\"table-" + escHtml(table.name) + "\">" +
-          "<div class=\"table-head\">" +
-            "<a class=\"back-top\" href=\"#top\">Back to top</a>" +
-            "<h3>" + escHtml(table.name) + "</h3>" +
-            "<p><span class=\"badge " + badgeClass(usage.status) + "\">" + badgeText(usage.status) + "</span> <span class=\"usage-copy\">" + escHtml(cleanUsageCopy(usage.summary)) + "</span></p>" +
-          "</div>" +
-          "<div style=\"overflow:auto;\">" +
+        return "<details class=\"table-card\" id=\"table-" + escHtml(table.name) + "\">" +
+          "<summary>" +
+            "<div class=\"summary-main\">" +
+              "<h3>" + escHtml(table.name) + "</h3>" +
+              "<p><span class=\"badge " + badgeClass(usage.status) + "\">" + badgeText(usage.status) + "</span> <span class=\"usage-copy\">" + escHtml(cleanUsageCopy(usage.summary)) + "</span></p>" +
+            "</div>" +
+          "</summary>" +
+          "<div class=\"table-body\">" +
           "<table class=\"tight\">" +
             "<thead><tr>" +
               "<th>Column</th>" +
@@ -1793,21 +2169,24 @@ CREATE TABLE public.trs_simulation_run_artifacts (
             "<tbody>" + rows + "</tbody>" +
           "</table>" +
           "</div>" +
-          "</article>";
+          "</details>";
       }).join("");
     }
 
     const THEME_STORAGE_KEY = "db-migration-review-theme";
     const themeToggle = document.getElementById("theme-toggle");
 
+    const VALID_THEMES = ["light", "dark", "solar"];
+    const NEXT_LABEL = { light: "Dark mode", dark: "Solar mode", solar: "Light mode" };
+
     function applyTheme(theme) {
-      const normalized = theme === "dark" ? "dark" : "light";
+      const normalized = VALID_THEMES.includes(theme) ? theme : "light";
       document.documentElement.setAttribute("data-theme", normalized);
 
       if (themeToggle) {
-        const isDark = normalized === "dark";
-        themeToggle.textContent = isDark ? "Light mode" : "Dark mode";
-        themeToggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+        themeToggle.textContent = NEXT_LABEL[normalized];
+        themeToggle.setAttribute("aria-label", "Switch to " + NEXT_LABEL[normalized]);
+        themeToggle.setAttribute("data-current-theme", normalized);
       }
     }
 
@@ -1816,7 +2195,7 @@ CREATE TABLE public.trs_simulation_run_artifacts (
 
       try {
         const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-        if (storedTheme === "light" || storedTheme === "dark") {
+        if (VALID_THEMES.includes(storedTheme)) {
           initialTheme = storedTheme;
         } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
           initialTheme = "dark";
@@ -1830,8 +2209,10 @@ CREATE TABLE public.trs_simulation_run_artifacts (
 
     if (themeToggle) {
       themeToggle.addEventListener("click", () => {
-        const currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
-        const nextTheme = currentTheme === "dark" ? "light" : "dark";
+        const order = ["light", "dark", "solar"];
+        const current = document.documentElement.getAttribute("data-theme") || "light";
+        const idx = order.indexOf(current);
+        const nextTheme = order[(idx + 1) % order.length];
         applyTheme(nextTheme);
         try {
           localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
@@ -1845,6 +2226,40 @@ CREATE TABLE public.trs_simulation_run_artifacts (
 
     renderNf3();
     renderMatrix();
+
+    // Auto-open a <details> when its id is the URL hash target, and again
+    // whenever a same-page anchor link points to it. Also expand all
+    // ancestor <details> so the target is actually visible.
+    function openDetailsForHash(hash) {
+      if (!hash || hash === "#" || hash === "#top") return;
+      let target;
+      try {
+        target = document.querySelector(hash);
+      } catch (err) {
+        return;
+      }
+      if (!target) return;
+      let node = target;
+      while (node && node !== document.body) {
+        if (node.tagName === "DETAILS") node.open = true;
+        node = node.parentElement;
+      }
+      // Scroll into view after the open transition kicks in.
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+
+    document.addEventListener("click", (event) => {
+      const link = event.target.closest("a[href^=\"#\"]");
+      if (!link) return;
+      const hash = link.getAttribute("href");
+      if (!hash || hash === "#" || hash === "#top") return;
+      openDetailsForHash(hash);
+    });
+
+    window.addEventListener("hashchange", () => openDetailsForHash(location.hash));
+    if (location.hash) openDetailsForHash(location.hash);
   </script>
 </body>
 </html>
