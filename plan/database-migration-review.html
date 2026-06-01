@@ -1,0 +1,1845 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulation Studio Migration Review</title>
+  <style>
+    :root {
+      --bg: #f3f6f8;
+      --panel: #ffffff;
+      --ink: #0d1b2a;
+      --muted: #4f6173;
+      --brand: #0b6e99;
+      --brand-2: #14a38b;
+      --warn: #c97b00;
+      --danger: #b53a2d;
+      --ok: #227a3b;
+      --shadow: 0 10px 25px rgba(13, 27, 42, 0.08);
+      --border: #d8e0e7;
+      --page-bg:
+        radial-gradient(circle at 10% 10%, rgba(20, 163, 139, 0.14), transparent 28%),
+        radial-gradient(circle at 90% 10%, rgba(11, 110, 153, 0.14), transparent 32%),
+        linear-gradient(180deg, #f8fbfd, #edf3f7 60%, #eef2f5);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--page-bg);
+      color: var(--ink);
+      font-family: "Space Grotesk", "Segoe UI", "Tahoma", sans-serif;
+      line-height: 1.45;
+      scroll-behavior: smooth;
+      transition: background 220ms ease, color 220ms ease;
+    }
+
+    .wrap {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 18px 20px 48px;
+    }
+
+    .top-controls {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    #theme-toggle {
+      border: 1px solid #b8cfdf;
+      border-radius: 999px;
+      background: #f6fbff;
+      color: #163952;
+      font-size: 0.84rem;
+      font-weight: 700;
+      padding: 8px 14px;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(10, 34, 56, 0.08);
+      transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+    }
+
+    #theme-toggle:hover {
+      background: #e9f4fb;
+      border-color: #97bfd8;
+    }
+
+    .hero {
+      border: 1px solid #b8d3df;
+      background:
+        linear-gradient(120deg, #eef8fd, #f3fffb 52%, #ffffff),
+        repeating-linear-gradient(
+          -45deg,
+          rgba(11, 110, 153, 0.05) 0,
+          rgba(11, 110, 153, 0.05) 8px,
+          rgba(255, 255, 255, 0.0) 8px,
+          rgba(255, 255, 255, 0.0) 16px
+        );
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 14px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      letter-spacing: 0.2px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 900px;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .meta .kpi {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid #cfe1ea;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .kpi .n {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--brand);
+    }
+
+    .kpi .l {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .toc {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      margin: 0 0 14px;
+      border: 1px solid #d3dee7;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 5px 16px rgba(12, 28, 48, 0.07);
+      padding: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .toc a {
+      text-decoration: none;
+      color: #123148;
+      border: 1px solid #d4e3ee;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      background: #f8fcff;
+    }
+
+    .toc a:hover {
+      background: #eaf6ff;
+      border-color: #b2d8ef;
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 18px 18px 16px;
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.25rem;
+      color: #132f46;
+    }
+
+    h3 {
+      margin: 16px 0 8px;
+      font-size: 1.03rem;
+      color: #1d415f;
+    }
+
+    p, li {
+      color: #1f374d;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .note {
+      background: #f5fbff;
+      border-left: 4px solid #58a9d6;
+      border-radius: 8px;
+      padding: 9px 10px;
+      margin: 8px 0;
+      color: #274a66;
+    }
+
+    .warn {
+      background: #fff9ef;
+      border-left-color: #d29922;
+    }
+
+    .danger {
+      background: #fff3f1;
+      border-left-color: #d04b3f;
+    }
+
+    .ok {
+      background: #f2fbf5;
+      border-left-color: #2f8f47;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      border: 1px solid transparent;
+      vertical-align: middle;
+      margin-right: 6px;
+      white-space: nowrap;
+    }
+
+    .b-implemented {
+      background: #e7f7ed;
+      color: #145c2d;
+      border-color: #9fd7b1;
+    }
+
+    .b-planned {
+      background: #ebf5ff;
+      color: #0c4978;
+      border-color: #9ec6e8;
+    }
+
+    .b-internal {
+      background: #f4f0ff;
+      color: #4f2f8f;
+      border-color: #c7b8ef;
+    }
+
+    .b-none {
+      background: #f7f7f9;
+      color: #50586a;
+      border-color: #d7dbe2;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.86rem;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border: 1px solid #d7e0e8;
+      padding: 8px;
+      vertical-align: top;
+      text-align: left;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    th {
+      background: #f2f8fc;
+      color: #18374f;
+    }
+
+    .tight th, .tight td {
+      padding: 6px;
+    }
+
+    .matrix-index {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 16px;
+    }
+
+    .matrix-index a {
+      text-decoration: none;
+      border: 1px solid #d4e0ea;
+      background: #f8fbfe;
+      color: #23455f;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+    }
+
+    .table-card {
+      border: 1px solid #d8e3eb;
+      border-radius: 12px;
+      margin: 14px 0;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .table-head {
+      background: linear-gradient(90deg, #f4fafc, #f8fdff);
+      border-bottom: 1px solid #d8e3eb;
+      padding: 10px 12px;
+    }
+
+    .table-head h3 {
+      margin: 0 0 4px;
+      font-size: 1rem;
+      display: inline-block;
+    }
+
+    .table-head p {
+      margin: 0;
+      color: #4b6276;
+      font-size: 0.82rem;
+    }
+
+    #matrix-container table th:nth-child(1),
+    #matrix-container table td:nth-child(1) {
+      width: 13%;
+    }
+
+    #matrix-container table th:nth-child(2),
+    #matrix-container table td:nth-child(2) {
+      width: 12%;
+    }
+
+    #matrix-container table th:nth-child(3),
+    #matrix-container table td:nth-child(3) {
+      width: 11%;
+    }
+
+    #matrix-container table th:nth-child(4),
+    #matrix-container table td:nth-child(4) {
+      width: 8%;
+    }
+
+    #matrix-container table th:nth-child(5),
+    #matrix-container table td:nth-child(5) {
+      width: 26%;
+    }
+
+    #matrix-container table th:nth-child(6),
+    #matrix-container table td:nth-child(6) {
+      width: 30%;
+    }
+
+    .usage-copy {
+      margin-left: 4px;
+    }
+
+    .back-top {
+      float: right;
+      font-size: 0.78rem;
+      color: #0f6591;
+      text-decoration: none;
+      margin-top: 2px;
+    }
+
+    .evidence-list {
+      margin: 0;
+      padding-left: 18px;
+      font-family: "IBM Plex Mono", "Consolas", monospace;
+      font-size: 0.81rem;
+      color: #2f495f;
+    }
+
+    .footer {
+      text-align: center;
+      color: #4b6174;
+      font-size: 0.82rem;
+      padding: 10px;
+    }
+
+    html[data-theme="dark"] {
+      --ink: #e4edf4;
+      --muted: #b2c3d1;
+      --panel: #12212f;
+      --border: #314a5d;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.34);
+      --page-bg:
+        radial-gradient(circle at 12% 8%, rgba(22, 97, 126, 0.32), transparent 28%),
+        radial-gradient(circle at 88% 10%, rgba(24, 122, 95, 0.26), transparent 34%),
+        linear-gradient(180deg, #0b1620, #0e1b28 60%, #102031);
+    }
+
+    html[data-theme="dark"] .hero {
+      border-color: #3a566d;
+      background:
+        linear-gradient(120deg, #172a39, #1a2d40 52%, #1d3349),
+        repeating-linear-gradient(
+          -45deg,
+          rgba(128, 181, 216, 0.08) 0,
+          rgba(128, 181, 216, 0.08) 8px,
+          rgba(255, 255, 255, 0) 8px,
+          rgba(255, 255, 255, 0) 16px
+        );
+    }
+
+    html[data-theme="dark"] .hero p {
+      color: #c6d8e6;
+    }
+
+    html[data-theme="dark"] .meta .kpi {
+      background: rgba(15, 31, 44, 0.84);
+      border-color: #3e617b;
+    }
+
+    html[data-theme="dark"] .toc {
+      border-color: #3e617b;
+      background: rgba(17, 33, 47, 0.92);
+      box-shadow: 0 5px 16px rgba(0, 0, 0, 0.32);
+    }
+
+    html[data-theme="dark"] .toc a {
+      color: #d9e9f5;
+      border-color: #4a6680;
+      background: #1c3448;
+    }
+
+    html[data-theme="dark"] .toc a:hover {
+      background: #25435d;
+      border-color: #5c7d9c;
+    }
+
+    html[data-theme="dark"] h2 {
+      color: #d6e8f8;
+    }
+
+    html[data-theme="dark"] h3 {
+      color: #c6dbef;
+    }
+
+    html[data-theme="dark"] p,
+    html[data-theme="dark"] li {
+      color: #c7d7e4;
+    }
+
+    html[data-theme="dark"] .note {
+      background: #193449;
+      color: #d2e4f2;
+      border-left-color: #66a9d1;
+    }
+
+    html[data-theme="dark"] .warn {
+      background: #3a311c;
+      border-left-color: #d3a14a;
+    }
+
+    html[data-theme="dark"] .danger {
+      background: #3a2424;
+      border-left-color: #d06e66;
+    }
+
+    html[data-theme="dark"] .ok {
+      background: #1e3b2b;
+      border-left-color: #52a96a;
+    }
+
+    html[data-theme="dark"] th,
+    html[data-theme="dark"] td {
+      border-color: #385266;
+    }
+
+    html[data-theme="dark"] th {
+      background: #21384d;
+      color: #d3e5f5;
+    }
+
+    html[data-theme="dark"] .matrix-index a {
+      border-color: #4b6780;
+      background: #1a3246;
+      color: #d3e5f2;
+    }
+
+    html[data-theme="dark"] .table-card {
+      border-color: #3a5366;
+      background: #132434;
+    }
+
+    html[data-theme="dark"] .table-head {
+      background: linear-gradient(90deg, #1b3448, #1f394f);
+      border-bottom-color: #3c5a71;
+    }
+
+    html[data-theme="dark"] .table-head p {
+      color: #b8ccdd;
+    }
+
+    html[data-theme="dark"] .evidence-list {
+      color: #b8cddd;
+    }
+
+    html[data-theme="dark"] .footer {
+      color: #afc2d3;
+    }
+
+    html[data-theme="dark"] #theme-toggle {
+      border-color: #4b6e88;
+      background: #1d364b;
+      color: #d9e9f6;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.28);
+    }
+
+    html[data-theme="dark"] #theme-toggle:hover {
+      background: #27445d;
+      border-color: #6b8ca9;
+    }
+
+    @media (max-width: 900px) {
+      .meta {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .wrap {
+        padding: 12px;
+      }
+      .hero h1 {
+        font-size: 1.5rem;
+      }
+      .meta {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body id="top">
+  <div class="wrap">
+    <div class="top-controls">
+      <button id="theme-toggle" type="button" aria-label="Toggle color theme" aria-pressed="false">Dark mode</button>
+    </div>
+
+    <header class="hero">
+      <h1>Database Migration Review: plan/database-migration.sql</h1>
+      <p>
+        Independent schema review focused on duplicates, currently unused columns, rule identity semantics, normalization quality,
+        and simplification opportunities. This report does not modify source files.
+      </p>
+      <div class="meta">
+        <div class="kpi"><div class="n">17</div><div class="l">Tables in migration</div></div>
+        <div class="kpi"><div class="n">1</div><div class="l">Table with live runtime usage</div></div>
+        <div class="kpi"><div class="n">16</div><div class="l">Tables currently planned or internal</div></div>
+        <div class="kpi"><div class="n">3NF*</div><div class="l">Mostly 3NF, with deliberate snapshots</div></div>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#executive-summary">Executive Summary</a>
+      <a href="#evidence">Evidence Base</a>
+      <a href="#findings">Unused and Duplicate Analysis</a>
+      <a href="#rule-identity">rule_repo vs rule_name</a>
+      <a href="#nf3">3NF Assessment</a>
+      <a href="#simplification">Simplification Plan</a>
+      <a href="#endpoints">Endpoint Coverage</a>
+      <a href="#matrix">Table and Column Matrix</a>
+    </nav>
+
+    <section id="executive-summary">
+      <h2>Executive Summary</h2>
+      <div class="note ok">
+        The schema is structurally strong for auditability and deterministic replay. Most denormalized elements are intentional snapshots.
+      </div>
+      <ul>
+        <li>Current implementation uses only the root table trs_simulation_suites in live TypeScript runtime code.</li>
+        <li>All other tables are design-aligned with the planned run pipeline, but are not yet evidenced in runtime repositories/controllers.</li>
+        <li>The main duplication pattern is snapshot duplication, not accidental duplication: rule identity fields and payload snapshots are repeated to preserve historical fidelity per generation and run.</li>
+        <li>3NF is mostly preserved at entity level; controlled denormalization exists for performance and immutability.</li>
+        <li>Highest risk is not schema correctness, but delivery drift: large portions of schema are ahead of currently implemented endpoints.</li>
+      </ul>
+    </section>
+
+    <section id="evidence">
+      <h2>Evidence Base</h2>
+      <p>Findings are grounded in migration DDL, currently implemented endpoints, repository SQL, and planning docs.</p>
+      <h3>Runtime Evidence</h3>
+      <ul class="evidence-list">
+        <li>plan/database-migration.sql:24</li>
+        <li>plan/database-migration.sql:75</li>
+        <li>plan/database-migration.sql:119</li>
+        <li>plan/database-migration.sql:186</li>
+        <li>plan/database-migration.sql:261</li>
+        <li>plan/database-migration.sql:320</li>
+        <li>plan/database-migration.sql:349</li>
+        <li>plan/database-migration.sql:402</li>
+        <li>plan/database-migration.sql:422</li>
+        <li>plan/database-migration.sql:449</li>
+        <li>plan/database-migration.sql:458</li>
+        <li>rule-studio/backend/src/services/simulation-studio/simulation-studio.controller.ts:21</li>
+        <li>rule-studio/backend/src/services/simulation-studio/simulation-studio.controller.ts:26</li>
+        <li>rule-studio/backend/src/services/simulation-studio/simulation-studio.controller.ts:48</li>
+        <li>rule-studio/backend/src/services/simulation-studio/simulation-studio.controller.ts:66</li>
+        <li>rule-studio/backend/src/services/simulation-studio/simulation-studio.controller.ts:82</li>
+        <li>rule-studio/backend/src/constants/constant.ts:67</li>
+        <li>rule-studio/backend/src/constants/constant.ts:68</li>
+        <li>admin-service/src/router.ts:460</li>
+        <li>admin-service/src/router.ts:464</li>
+        <li>admin-service/src/router.ts:468</li>
+        <li>admin-service/src/router.ts:472</li>
+        <li>admin-service/src/repositories/simulation-studio/suites.repository.ts:52</li>
+        <li>admin-service/src/repositories/simulation-studio/suites.repository.ts:69</li>
+        <li>admin-service/src/repositories/simulation-studio/suites.repository.ts:145</li>
+        <li>admin-service/src/repositories/simulation-studio/suites.repository.ts:251</li>
+      </ul>
+
+      <h3>Plan and Design Evidence</h3>
+      <ul class="evidence-list">
+        <li>plan/implementation_plan.md:15</li>
+        <li>plan/implementation_plan.md:141</li>
+        <li>plan/implementation_plan.md:142</li>
+        <li>plan/implementation_plan.md:143</li>
+        <li>plan/implementation_plan.md:404</li>
+        <li>plan/implementation_plan.md:487</li>
+        <li>plan/implementation_plan.md:1091</li>
+        <li>plan/implementation_plan.md:1151</li>
+        <li>plan/implementation_plan.md:1170</li>
+        <li>plan/trs_story_implementation_report.original.md:242</li>
+        <li>plan/trs_story_implementation_report.original.md:862</li>
+      </ul>
+    </section>
+
+    <section id="findings">
+      <h2>Unused and Duplicate Analysis</h2>
+      <div class="note danger">
+        Severity High: The migration provisions 17 tables, but runtime code currently references only trs_simulation_suites. This is a delivery gap risk, not a DDL defect.
+      </div>
+      <h3>Potentially Unused Right Now</h3>
+      <ul>
+        <li>All non-suite tables (16 tables) are currently planned/internal from code perspective, with no direct repository/controller SQL usage evidenced in runtime TypeScript sources.</li>
+        <li>Within trs_simulation_suites, clone_source_suite_id exists but no complete clone endpoint flow is currently evidenced in active runtime code.</li>
+        <li>Within trs_simulation_suites, simulation_type is currently accepted but appears operationally single-mode in implemented paths.</li>
+      </ul>
+
+      <h3>Intentional Duplicates (Snapshot Denormalization)</h3>
+      <ul>
+        <li>rule_repo and rule_version are repeated in suite, generation, and run tables to freeze historical identity across lifecycle transitions.</li>
+        <li>context_payload_json and trigger_payload_json in trs_suite_context_sim_pairs duplicate payloads already held by message tables, likely for deterministic replay without extra joins.</li>
+        <li>Counter columns in trs_suite_generations (context_count, trigger_count, generated_* and *_field_config_count) are derivable from child rows but likely retained for read efficiency and immutable snapshots.</li>
+        <li>iteration_count, run_count, and last_run_at on trs_simulation_suites are rollup fields derivable from descendants, but useful for list performance.</li>
+      </ul>
+
+      <div class="note warn">
+        Recommendation: keep snapshot duplicates that protect determinism/auditability, but classify each duplicate as either "performance cache", "immutability snapshot", or "remove candidate" and enforce owner-level write rules.
+      </div>
+    </section>
+
+    <section id="rule-identity">
+      <h2>rule_repo vs rule_name</h2>
+      <p><strong>They serve different concerns and should not be merged.</strong></p>
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Meaning</th>
+            <th>Operational Role</th>
+            <th>Observed Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>rule_repo</td>
+            <td>Technical image/repository identity for executable rule artifact.</td>
+            <td>Execution and reproducibility pipeline (especially with tag/digest on runs).</td>
+            <td>Mapped through create/patch payloads in service and repository; not currently exposed as list filter in implemented endpoints.</td>
+          </tr>
+          <tr>
+            <td>rule_name</td>
+            <td>Business-facing display name of selected rule.</td>
+            <td>UI readability, search/filter, operator workflow.</td>
+            <td>Implemented list filter in admin repository (rule_name ILIKE), and surfaced in controller query DTOs.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        Practical model: keep both fields, enforce consistency at write boundary, and optionally add a canonical rule_id in future to reduce semantic ambiguity while retaining snapshot columns.
+      </div>
+    </section>
+
+    <section id="nf3">
+      <h2>3NF Assessment</h2>
+      <p>Overall verdict: <strong>3NF with intentional, controlled denormalization for snapshots and query performance.</strong></p>
+      <table>
+        <thead>
+          <tr>
+            <th>Table</th>
+            <th>3NF Verdict</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody id="nf3-body"></tbody>
+      </table>
+      <div class="note ok">
+        No severe transitive-dependency anti-patterns were found that require immediate table redesign. Most deviations are intentional snapshot/cache fields.
+      </div>
+    </section>
+
+    <section id="simplification">
+      <h2>Simplification Plan (No DDL Change Applied)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Proposal</th>
+            <th>Benefit</th>
+            <th>Risk</th>
+            <th>Priority</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Define write ownership per snapshot field group (suite rollups, generation counters, run snapshots).</td>
+            <td>Eliminates drift between source data and cached counters.</td>
+            <td>Low; mostly service-layer policy work.</td>
+            <td>High</td>
+          </tr>
+          <tr>
+            <td>Add consistency contract for rule identity (rule_repo, rule_name, rule_version) and require at least one canonical key path.</td>
+            <td>Prevents semantic mismatch between display identity and executable identity.</td>
+            <td>Medium; affects payload validation and migration policy.</td>
+            <td>High</td>
+          </tr>
+          <tr>
+            <td>Classify payload duplication in trs_suite_context_sim_pairs as mandatory snapshot vs optional optimization.</td>
+            <td>Possible storage reduction if optional; better rationale if mandatory.</td>
+            <td>Medium; may affect replay logic.</td>
+            <td>Medium</td>
+          </tr>
+          <tr>
+            <td>For generated row/message tables, add retention strategy by suite age or run age.</td>
+            <td>Controls table growth and improves operational cost.</td>
+            <td>Medium; requires archival strategy.</td>
+            <td>Medium</td>
+          </tr>
+          <tr>
+            <td>Optionally constrain metadata shape (size cap + schema keys) at application boundary.</td>
+            <td>Reduces unbounded JSON growth and unpredictable query behavior.</td>
+            <td>Low.</td>
+            <td>Medium</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="endpoints">
+      <h2>Endpoint Coverage Snapshot</h2>
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Endpoint</th>
+            <th>Evidence</th>
+            <th>Primary Tables Touched</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge b-implemented">Implemented</span></td>
+            <td>GET /api/v1/simulation-studio/suites</td>
+            <td>RS controller + admin route + repository SQL list query</td>
+            <td>trs_simulation_suites</td>
+          </tr>
+          <tr>
+            <td><span class="badge b-implemented">Implemented</span></td>
+            <td>GET /api/v1/simulation-studio/suites/:id</td>
+            <td>RS controller + admin route + repository SQL by ID query</td>
+            <td>trs_simulation_suites</td>
+          </tr>
+          <tr>
+            <td><span class="badge b-implemented">Implemented</span></td>
+            <td>POST /api/v1/simulation-studio/suites</td>
+            <td>RS controller + admin route + repository INSERT</td>
+            <td>trs_simulation_suites</td>
+          </tr>
+          <tr>
+            <td><span class="badge b-implemented">Implemented</span></td>
+            <td>PATCH /api/v1/simulation-studio/suites/:id</td>
+            <td>RS controller + admin route + repository UPDATE</td>
+            <td>trs_simulation_suites</td>
+          </tr>
+          <tr>
+            <td><span class="badge b-planned">Planned</span></td>
+            <td>PUT /api/v1/simulation-studio/suites/:id/draft</td>
+            <td>Plan docs specify draft persistence and wizard_progress updates</td>
+            <td>trs_simulation_suites (metadata, wizard_progress)</td>
+          </tr>
+          <tr>
+            <td><span class="badge b-planned">Planned</span></td>
+            <td>POST /api/v1/simulation-studio/suites/:id/run</td>
+            <td>Plan docs specify saveIterationTransactional atomic writes</td>
+            <td>trs_suite_generations + context/trigger/enrichment tables + runs</td>
+          </tr>
+          <tr>
+            <td><span class="badge b-planned">Planned</span></td>
+            <td>GET /api/v1/simulation-studio/suites/:id/runs/:runId/status</td>
+            <td>Plan docs specify polling response with status/phase (+partialResults)</td>
+            <td>trs_simulation_runs, trs_simulation_run_results</td>
+          </tr>
+          <tr>
+            <td><span class="badge b-planned">Planned</span></td>
+            <td>GET /api/v1/simulation-studio/suites/:id/runs/:runId/results</td>
+            <td>Plan docs specify paginated results reads</td>
+            <td>trs_simulation_run_results (+ links)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="matrix">
+      <h2>Table and Column Matrix</h2>
+      <p>
+        Each row includes data type, practical size limit, key constraints, and endpoint usage status.
+        Usage status legend: implemented, planned, internal planned, not evidenced.
+      </p>
+      <div class="matrix-index" id="matrix-index"></div>
+      <div id="matrix-container"></div>
+    </section>
+
+    <div class="footer">
+      Review generated from migration and runtime code inspection. No source SQL was changed.
+    </div>
+  </div>
+
+  <script>
+    const sqlText = String.raw`-- TRS Simulation Studio v2.2
+-- First-time database initialization script for a blank database.
+-- 3NF schema for suites, iterations, faker inputs, generated datasets,
+-- deterministic pairing snapshots, and run lifecycle/result persistence.
+
+BEGIN;
+
+-- -----------------------------------------------------------------------------
+-- 0) Shared helper trigger for updated_at maintenance
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.trs_set_updated_at()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.updated_at := NOW();
+  RETURN NEW;
+END;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- 1) Suite root aggregate
+-- -----------------------------------------------------------------------------
+CREATE TABLE public.trs_simulation_suites (
+  id                      BIGSERIAL PRIMARY KEY,
+  tenant_id               VARCHAR(255) NOT NULL,
+  name                    VARCHAR(120) NOT NULL,
+  description             VARCHAR(500),
+  simulation_type         VARCHAR(30) NOT NULL DEFAULT 'SINGLE_RULE',
+  status                  VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
+  rule_repo               VARCHAR(255),
+  rule_name               VARCHAR(255),
+  rule_version            VARCHAR(128),
+  primary_txtp            VARCHAR(80),
+  primary_txtp_version    VARCHAR(80),
+  clone_source_suite_id   BIGINT REFERENCES public.trs_simulation_suites(id),
+  iteration_count         INTEGER NOT NULL DEFAULT 0,
+  run_count               INTEGER NOT NULL DEFAULT 0,
+  last_run_at             TIMESTAMPTZ,
+  wizard_progress         JSONB NOT NULL DEFAULT '{}'::jsonb,
+  metadata                JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_by              VARCHAR(255) NOT NULL,
+  created_by_email        VARCHAR(255),
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT chk_trs_simulation_suites_simulation_type
+    CHECK (simulation_type IN ('SINGLE_RULE', 'INTEGRATION_TESTING')),
+  CONSTRAINT chk_trs_simulation_suites_status
+    CHECK (status IN ('DRAFT', 'RUNNING', 'COMPLETED', 'FAILED', 'ARCHIVED'))
+);
+
+CREATE TABLE public.trs_suite_generations (
+  id                             BIGSERIAL PRIMARY KEY,
+  suite_id                       BIGINT NOT NULL REFERENCES public.trs_simulation_suites(id) ON DELETE CASCADE,
+  generation_number              INTEGER NOT NULL,
+  status                         VARCHAR(32) NOT NULL DEFAULT 'DRAFT',
+  simulation_type                VARCHAR(30) NOT NULL DEFAULT 'SINGLE_RULE',
+  rule_repo                      VARCHAR(255),
+  rule_version                   VARCHAR(128),
+  context_count                  INTEGER NOT NULL DEFAULT 0,
+  trigger_count                  INTEGER NOT NULL DEFAULT 0,
+  enrichment_table_count         INTEGER NOT NULL DEFAULT 0,
+  generated_context_count        INTEGER NOT NULL DEFAULT 0,
+  generated_trigger_count        INTEGER NOT NULL DEFAULT 0,
+  generated_enrichment_row_count INTEGER NOT NULL DEFAULT 0,
+  context_field_config_count     INTEGER NOT NULL DEFAULT 0,
+  trigger_field_config_count     INTEGER NOT NULL DEFAULT 0,
+  enrichment_field_config_count  INTEGER NOT NULL DEFAULT 0,
+  wizard_snapshot                JSONB NOT NULL DEFAULT '{}'::jsonb,
+  generation_metadata            JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_by                     VARCHAR(255) NOT NULL,
+  created_by_email               VARCHAR(255),
+  created_at                     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at                     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_suite_generations_suite_generation
+    UNIQUE (suite_id, generation_number),
+  CONSTRAINT chk_trs_suite_generations_status
+    CHECK (status IN ('DRAFT', 'READY', 'RUNNING', 'COMPLETED', 'FAILED', 'ARCHIVED')),
+  CONSTRAINT chk_trs_suite_generations_simulation_type
+    CHECK (simulation_type IN ('SINGLE_RULE', 'INTEGRATION_TESTING'))
+);
+
+CREATE TABLE public.trs_suite_context_txtp_configs (
+  id                      BIGSERIAL PRIMARY KEY,
+  generation_id           BIGINT NOT NULL REFERENCES public.trs_suite_generations(id) ON DELETE CASCADE,
+  txtp                    VARCHAR(80) NOT NULL,
+  txtp_version            VARCHAR(80) NOT NULL,
+  display_order           INTEGER NOT NULL,
+  message_count           INTEGER NOT NULL CHECK (message_count >= 1),
+  schema_snapshot         JSONB NOT NULL,
+  sample_payload_snapshot JSONB,
+  faker_seed              BIGINT,
+  generator_profile       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_suite_context_txtp_configs
+    UNIQUE (generation_id, txtp, txtp_version, display_order)
+);
+
+CREATE TABLE public.trs_suite_context_field_strategies (
+  id                      BIGSERIAL PRIMARY KEY,
+  context_txtp_config_id  BIGINT NOT NULL REFERENCES public.trs_suite_context_txtp_configs(id) ON DELETE CASCADE,
+  field_path              TEXT NOT NULL,
+  strategy_code           VARCHAR(24) NOT NULL,
+  static_value            JSONB,
+  range_min               NUMERIC,
+  range_max               NUMERIC,
+  generator_type          VARCHAR(64),
+  generator_options       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  is_required_override    BOOLEAN,
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_suite_context_field_strategies
+    UNIQUE (context_txtp_config_id, field_path),
+  CONSTRAINT chk_trs_suite_context_field_strategies_strategy
+    CHECK (strategy_code IN ('keep_sample', 'static', 'range', 'generated', 'null', 'skip')),
+  CONSTRAINT chk_trs_suite_context_field_strategies_range
+    CHECK (
+      strategy_code <> 'range'
+      OR (range_min IS NOT NULL AND range_max IS NOT NULL AND range_min <= range_max)
+    )
+);
+
+CREATE TABLE public.trs_suite_context_generated_messages (
+  id                      BIGSERIAL PRIMARY KEY,
+  context_txtp_config_id  BIGINT NOT NULL REFERENCES public.trs_suite_context_txtp_configs(id) ON DELETE CASCADE,
+  message_order           INTEGER NOT NULL CHECK (message_order >= 1),
+  payload_json            JSONB NOT NULL,
+  payload_hash            CHAR(64),
+  validation_status       VARCHAR(16) NOT NULL DEFAULT 'VALID'
+                          CHECK (validation_status IN ('VALID', 'INVALID')),
+  validation_errors       JSONB,
+  generated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_suite_context_generated_messages
+    UNIQUE (context_txtp_config_id, message_order)
+);
+
+CREATE TABLE public.trs_suite_trigger_txtp_configs (
+  id                            BIGSERIAL PRIMARY KEY,
+  generation_id                 BIGINT NOT NULL REFERENCES public.trs_suite_generations(id) ON DELETE CASCADE,
+  txtp                          VARCHAR(80) NOT NULL,
+  txtp_version                  VARCHAR(80) NOT NULL,
+  display_order                 INTEGER NOT NULL,
+  message_count                 INTEGER NOT NULL CHECK (message_count >= 1),
+  link_to_context_pairs         BOOLEAN NOT NULL DEFAULT FALSE,
+  payload_template_json         JSONB NOT NULL,
+  expected_independent_variable NUMERIC,
+  expected_result_band          VARCHAR(16),
+  notes                         TEXT,
+  faker_seed                    BIGINT,
+  generator_profile             JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at                    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_suite_trigger_txtp_configs
+    UNIQUE (generation_id, txtp, txtp_version, display_order),
+  CONSTRAINT chk_trs_suite_trigger_txtp_configs_expected_band
+    CHECK (
+      expected_result_band IS NULL
+      OR expected_result_band IN ('good', 'neutral', 'bad', 'error')
+    )
+);
+
+CREATE TABLE public.trs_suite_trigger_field_overrides (
+  id                      BIGSERIAL PRIMARY KEY,
+  trigger_txtp_config_id  BIGINT NOT NULL REFERENCES public.trs_suite_trigger_txtp_configs(id) ON DELETE CASCADE,
+  field_path              TEXT NOT NULL,
+  override_type           VARCHAR(24) NOT NULL,
+  static_value            JSONB,
+  range_min               NUMERIC,
+  range_max               NUMERIC,
+  generator_type          VARCHAR(64),
+  generator_options       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_suite_trigger_field_overrides
+    UNIQUE (trigger_txtp_config_id, field_path),
+  CONSTRAINT chk_trs_suite_trigger_field_overrides_type
+    CHECK (override_type IN ('static', 'range', 'generated', 'remove', 'null')),
+  CONSTRAINT chk_trs_suite_trigger_field_overrides_range
+    CHECK (
+      override_type <> 'range'
+      OR (range_min IS NOT NULL AND range_max IS NOT NULL AND range_min <= range_max)
+    )
+);
+
+CREATE TABLE public.trs_suite_trigger_generated_messages (
+  id                        BIGSERIAL PRIMARY KEY,
+  trigger_txtp_config_id    BIGINT NOT NULL REFERENCES public.trs_suite_trigger_txtp_configs(id) ON DELETE CASCADE,
+  message_order             INTEGER NOT NULL CHECK (message_order >= 1),
+  payload_json              JSONB NOT NULL,
+  end_to_end_id             VARCHAR(140),
+  linked_context_message_id BIGINT REFERENCES public.trs_suite_context_generated_messages(id),
+  validation_status         VARCHAR(16) NOT NULL DEFAULT 'VALID'
+                            CHECK (validation_status IN ('VALID', 'INVALID')),
+  validation_errors         JSONB,
+  generated_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_suite_trigger_generated_messages
+    UNIQUE (trigger_txtp_config_id, message_order)
+);
+
+CREATE TABLE public.trs_suite_enrichment_tables (
+  id                     BIGSERIAL PRIMARY KEY,
+  generation_id          BIGINT NOT NULL REFERENCES public.trs_suite_generations(id) ON DELETE CASCADE,
+  table_name             VARCHAR(63) NOT NULL,
+  table_order            INTEGER NOT NULL DEFAULT 1,
+  row_count              INTEGER NOT NULL DEFAULT 0 CHECK (row_count >= 0),
+  payload_template_json  JSONB,
+  schema_template_json   JSONB,
+  faker_profile          JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_suite_enrichment_tables
+    UNIQUE (generation_id, table_name)
+);
+
+CREATE TABLE public.trs_suite_enrichment_field_strategies (
+  id                      BIGSERIAL PRIMARY KEY,
+  enrichment_table_id     BIGINT NOT NULL REFERENCES public.trs_suite_enrichment_tables(id) ON DELETE CASCADE,
+  column_name             VARCHAR(128) NOT NULL,
+  column_type             VARCHAR(64),
+  strategy_code           VARCHAR(24) NOT NULL,
+  static_value            JSONB,
+  range_min               NUMERIC,
+  range_max               NUMERIC,
+  generator_type          VARCHAR(64),
+  generator_options       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_suite_enrichment_field_strategies
+    UNIQUE (enrichment_table_id, column_name),
+  CONSTRAINT chk_trs_suite_enrichment_field_strategies_strategy
+    CHECK (strategy_code IN ('static', 'range', 'generated', 'null', 'copy')),
+  CONSTRAINT chk_trs_suite_enrichment_field_strategies_range
+    CHECK (
+      strategy_code <> 'range'
+      OR (range_min IS NOT NULL AND range_max IS NOT NULL AND range_min <= range_max)
+    )
+);
+
+CREATE TABLE public.trs_suite_enrichment_generated_rows (
+  id                     BIGSERIAL PRIMARY KEY,
+  enrichment_table_id    BIGINT NOT NULL REFERENCES public.trs_suite_enrichment_tables(id) ON DELETE CASCADE,
+  row_order              INTEGER NOT NULL CHECK (row_order >= 1),
+  record_json            JSONB NOT NULL,
+  generated_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_suite_enrichment_generated_rows
+    UNIQUE (enrichment_table_id, row_order)
+);
+
+CREATE TABLE public.trs_suite_context_sim_pairs (
+  id                    BIGSERIAL PRIMARY KEY,
+  generation_id         BIGINT NOT NULL REFERENCES public.trs_suite_generations(id) ON DELETE CASCADE,
+  pair_order            INTEGER NOT NULL CHECK (pair_order >= 1),
+  context_message_id    BIGINT NOT NULL REFERENCES public.trs_suite_context_generated_messages(id) ON DELETE CASCADE,
+  trigger_message_id    BIGINT NOT NULL REFERENCES public.trs_suite_trigger_generated_messages(id) ON DELETE CASCADE,
+  context_payload_json  JSONB,
+  trigger_payload_json  JSONB,
+  validation_status     VARCHAR(16) NOT NULL DEFAULT 'VALID'
+                        CHECK (validation_status IN ('VALID', 'INVALID', 'SKIPPED')),
+  pairing_key           VARCHAR(140),
+  created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_suite_context_sim_pairs_order
+    UNIQUE (generation_id, pair_order),
+  CONSTRAINT uq_trs_suite_context_sim_pairs_message
+    UNIQUE (context_message_id, trigger_message_id)
+);
+
+CREATE TABLE public.trs_simulation_runs (
+  id                    BIGSERIAL PRIMARY KEY,
+  suite_id              BIGINT NOT NULL REFERENCES public.trs_simulation_suites(id) ON DELETE CASCADE,
+  generation_id         BIGINT NOT NULL REFERENCES public.trs_suite_generations(id) ON DELETE CASCADE,
+  run_number            INTEGER NOT NULL,
+  source_run_id         BIGINT REFERENCES public.trs_simulation_runs(id),
+  trigger_source        VARCHAR(32) NOT NULL DEFAULT 'WIZARD',
+  status                VARCHAR(32) NOT NULL DEFAULT 'ENV_PROVISIONING',
+  phase                 VARCHAR(64) NOT NULL DEFAULT 'ENV_PROVISIONING',
+  triggered_by          VARCHAR(255) NOT NULL,
+  triggered_by_email    VARCHAR(255),
+  rule_repo             VARCHAR(255),
+  rule_version          VARCHAR(128),
+  rule_image_tag        VARCHAR(255),
+  rule_image_digest     VARCHAR(255),
+  docker_network_name   VARCHAR(255),
+  orchestrator_metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  error_code            VARCHAR(64),
+  error_message         TEXT,
+  started_at            TIMESTAMPTZ,
+  completed_at          TIMESTAMPTZ,
+  created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_simulation_runs
+    UNIQUE (suite_id, generation_id, run_number),
+  CONSTRAINT chk_trs_simulation_runs_status
+    CHECK (status IN ('ENV_PROVISIONING', 'RUNNING', 'COMPLETED', 'FAILED', 'TIMED_OUT', 'CANCELLED')),
+  CONSTRAINT chk_trs_simulation_runs_phase
+    CHECK (phase IN (
+      'ENV_PROVISIONING',
+      'NETWORK_CREATE',
+      'BASE_CONTAINERS_START',
+      'ODS_INIT',
+      'APP_CONTAINERS_START',
+      'TRANSACTION_LOOP',
+      'CLEANUP',
+      'COMPLETED',
+      'FAILED'
+    ))
+);
+
+CREATE TABLE public.trs_simulation_run_events (
+  id            BIGSERIAL PRIMARY KEY,
+  run_id        BIGINT NOT NULL REFERENCES public.trs_simulation_runs(id) ON DELETE CASCADE,
+  event_order   INTEGER NOT NULL,
+  phase         VARCHAR(64),
+  level         VARCHAR(16) NOT NULL DEFAULT 'INFO'
+                CHECK (level IN ('DEBUG', 'INFO', 'WARN', 'ERROR')),
+  event_type    VARCHAR(64),
+  message       TEXT NOT NULL,
+  details_json  JSONB,
+  occurred_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_simulation_run_events
+    UNIQUE (run_id, event_order)
+);
+
+CREATE TABLE public.trs_simulation_run_results (
+  id                            BIGSERIAL PRIMARY KEY,
+  run_id                        BIGINT NOT NULL REFERENCES public.trs_simulation_runs(id) ON DELETE CASCADE,
+  transaction_order             INTEGER NOT NULL,
+  trigger_message_id            BIGINT REFERENCES public.trs_suite_trigger_generated_messages(id),
+  trigger_message_external_id   VARCHAR(140),
+  trigger_txtp                  VARCHAR(80),
+  independent_variable          NUMERIC,
+  result_band                   VARCHAR(16) NOT NULL,
+  expected_independent_variable NUMERIC,
+  expected_result_band          VARCHAR(16),
+  notes                         TEXT,
+  rule_processor_response       JSONB,
+  received_at                   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT uq_trs_simulation_run_results
+    UNIQUE (run_id, transaction_order),
+  CONSTRAINT chk_trs_simulation_run_results_result_band
+    CHECK (result_band IN ('good', 'neutral', 'bad', 'error')),
+  CONSTRAINT chk_trs_simulation_run_results_expected_band
+    CHECK (expected_result_band IS NULL OR expected_result_band IN ('good', 'neutral', 'bad', 'error'))
+);
+
+CREATE TABLE public.trs_simulation_run_result_context_links (
+  run_result_id      BIGINT NOT NULL REFERENCES public.trs_simulation_run_results(id) ON DELETE CASCADE,
+  context_message_id BIGINT NOT NULL REFERENCES public.trs_suite_context_generated_messages(id) ON DELETE CASCADE,
+  PRIMARY KEY (run_result_id, context_message_id)
+);
+
+CREATE TABLE public.trs_simulation_run_artifacts (
+  id             BIGSERIAL PRIMARY KEY,
+  run_id         BIGINT NOT NULL REFERENCES public.trs_simulation_runs(id) ON DELETE CASCADE,
+  artifact_type  VARCHAR(32) NOT NULL,
+  artifact_name  VARCHAR(255),
+  content_text   TEXT,
+  content_json   JSONB,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT chk_trs_simulation_run_artifacts_type
+    CHECK (artifact_type IN (
+      'CONTAINER_LOG',
+      'ODS_SQL',
+      'NATS_REQUEST',
+      'NATS_RESPONSE',
+      'RULE_PROCESSOR_RAW',
+      'ERROR_STACK',
+      'METRICS',
+      'OTHER'
+    ))
+);`;
+
+    const tableOrder = [
+      "trs_simulation_suites",
+      "trs_suite_generations",
+      "trs_suite_context_txtp_configs",
+      "trs_suite_context_field_strategies",
+      "trs_suite_context_generated_messages",
+      "trs_suite_trigger_txtp_configs",
+      "trs_suite_trigger_field_overrides",
+      "trs_suite_trigger_generated_messages",
+      "trs_suite_enrichment_tables",
+      "trs_suite_enrichment_field_strategies",
+      "trs_suite_enrichment_generated_rows",
+      "trs_suite_context_sim_pairs",
+      "trs_simulation_runs",
+      "trs_simulation_run_events",
+      "trs_simulation_run_results",
+      "trs_simulation_run_result_context_links",
+      "trs_simulation_run_artifacts"
+    ];
+
+    const tableUsage = {
+      trs_simulation_suites: {
+        status: "implemented",
+        summary: "Implemented CRUD/list flows: POST/GET/GET by id/PATCH under /api/v1/simulation-studio/suites.",
+        defaultColumnUsage: "Implemented in live repository SQL read/write paths for suite lifecycle fields.",
+        overrides: {
+          rule_name: "Implemented filter usage on list endpoint (rule_name ILIKE in repository query).",
+          primary_txtp: "Implemented filter usage on list endpoint (txtp mapped to primary_txtp ILIKE).",
+          wizard_progress: "Implemented: initialized on create and updated via PATCH payload mapping.",
+          metadata: "Implemented as pass-through JSON payload in create/update and read responses.",
+          tenant_id: "Implemented internal scope key; derived from auth context, not direct public write input."
+        }
+      },
+      trs_suite_generations: {
+        status: "planned",
+        summary: "Planned write target of saveIterationTransactional on POST /suites/:id/run.",
+        defaultColumnUsage: "Planned snapshot persistence per generation; no live repository SQL evidence yet."
+      },
+      trs_suite_context_txtp_configs: {
+        status: "planned",
+        summary: "Planned context TXTP config persistence during run save transaction.",
+        defaultColumnUsage: "Planned run-time materialization from wizard draft inputs."
+      },
+      trs_suite_context_field_strategies: {
+        status: "planned",
+        summary: "Planned strategy persistence for context field generation.",
+        defaultColumnUsage: "Planned input strategy storage; not evidenced in current runtime repository code."
+      },
+      trs_suite_context_generated_messages: {
+        status: "planned",
+        summary: "Planned generated context row snapshots tied to generation.",
+        defaultColumnUsage: "Planned generated data storage; expected writer is run generation pipeline."
+      },
+      trs_suite_trigger_txtp_configs: {
+        status: "planned",
+        summary: "Planned trigger TXTP config persistence during run save transaction.",
+        defaultColumnUsage: "Planned run-time materialization from wizard draft trigger configs."
+      },
+      trs_suite_trigger_field_overrides: {
+        status: "planned",
+        summary: "Planned per-field trigger override storage.",
+        defaultColumnUsage: "Planned strategy table for generated trigger payload transformations."
+      },
+      trs_suite_trigger_generated_messages: {
+        status: "planned",
+        summary: "Planned generated trigger message snapshots.",
+        defaultColumnUsage: "Planned write path from saveIterationTransactional pipeline."
+      },
+      trs_suite_enrichment_tables: {
+        status: "planned",
+        summary: "Planned enrichment table configuration snapshots.",
+        defaultColumnUsage: "Planned write path on run save transaction, not currently evidenced live."
+      },
+      trs_suite_enrichment_field_strategies: {
+        status: "planned",
+        summary: "Planned enrichment column strategy storage.",
+        defaultColumnUsage: "Planned strategy model for row generation at run save stage."
+      },
+      trs_suite_enrichment_generated_rows: {
+        status: "planned",
+        summary: "Planned generated enrichment rows per table.",
+        defaultColumnUsage: "Planned data snapshot target from run save transaction."
+      },
+      trs_suite_context_sim_pairs: {
+        status: "planned",
+        summary: "Planned deterministic pairing snapshot table (context to trigger).",
+        defaultColumnUsage: "Planned pairing persistence during atomic run save workflow."
+      },
+      trs_simulation_runs: {
+        status: "planned",
+        summary: "Planned run lifecycle row persistence for status, phase, image digest and orchestration metadata.",
+        defaultColumnUsage: "Planned writer endpoints: POST /suites/:id/run and quick rerun paths from design docs."
+      },
+      trs_simulation_run_events: {
+        status: "internal",
+        summary: "Planned internal event log table for run phases and diagnostics.",
+        defaultColumnUsage: "Internal planned orchestrator writes; no direct endpoint contract evidenced yet."
+      },
+      trs_simulation_run_results: {
+        status: "planned",
+        summary: "Planned per-transaction run outcomes with expected vs actual values.",
+        defaultColumnUsage: "Planned writes during transaction loop; planned reads via /runs/:runId/results and optional status partials."
+      },
+      trs_simulation_run_result_context_links: {
+        status: "internal",
+        summary: "Planned bridge table linking run result rows to source context messages.",
+        defaultColumnUsage: "Internal planned writer path via appendRunResult-like flow in design docs."
+      },
+      trs_simulation_run_artifacts: {
+        status: "internal",
+        summary: "Planned internal storage for logs, SQL traces, and raw processor payload artifacts.",
+        defaultColumnUsage: "Internal diagnostics persistence; no direct external endpoint evidence."
+      }
+    };
+
+    const columnDescriptions = {
+      trs_simulation_suites: {
+        id: "Surrogate primary key identifying the suite across all child tables and APIs.",
+        tenant_id: "Tenant scope key for multi-tenant isolation; every child query filters through this value.",
+        name: "Human-readable suite name shown in the list, detail header, and clone-of label.",
+        description: "Optional long-form text describing the suite's purpose, displayed in the detail overview.",
+        simulation_type: "Discriminator for the simulation flavour (currently `SINGLE_RULE`); reserved for future multi-rule modes.",
+        status: "Suite-level lifecycle state (`DRAFT`, `RUNNING`, `COMPLETED`, `FAILED`, `ARCHIVED`) shown as the StatusCard chip.",
+        rule_repo: "Docker Hub repository slug of the bound rule image (e.g., `rule-high-value`).",
+        rule_name: "Friendly display name of the bound rule, used for list/filter rendering.",
+        rule_version: "Currently selected rule image tag; mutable across iterations of the same suite.",
+        primary_txtp: "Immutable primary transaction type (TXTP code) that anchors all wizard generation.",
+        primary_txtp_version: "Version of the primary TXTP schema/sample used at suite creation time.",
+        clone_source_suite_id: "Self-referential pointer to the source suite when this suite was cloned; null for original suites.",
+        iteration_count: "Cached count of generations on this suite to avoid an aggregate query on the list page.",
+        run_count: "Cached count of runs across all generations on this suite for stat-card display.",
+        last_run_at: "Cached timestamp of the most recent run dispatch; used for sorting and stat cards.",
+        wizard_progress: "JSON map of `{ screenN: boolean }` flags marking which wizard screens have been completed.",
+        metadata: "JSON envelope holding `wizardDraft` per-screen state and any other extensible per-suite settings.",
+        created_by: "User id of the suite creator captured from the auth context.",
+        created_by_email: "Cached email of the creator for display in list/detail without joining users.",
+        created_at: "Suite creation timestamp set by Postgres `DEFAULT NOW()` on INSERT.",
+        updated_at: "Last-modification timestamp auto-maintained by the `trs_set_updated_at()` trigger."
+      },
+      trs_suite_generations: {
+        id: "Surrogate primary key of one immutable iteration (generation) of the suite.",
+        suite_id: "Foreign key to the parent suite; the (suite_id, generation_number) pair is unique.",
+        generation_number: "Monotonically increasing iteration number scoped to the suite (1, 2, 3...).",
+        status: "Generation lifecycle state (`DRAFT`, `READY`, `RUNNING`, `COMPLETED`, `FAILED`, `ARCHIVED`).",
+        simulation_type: "Snapshot of the suite's simulation type at the moment this generation was saved.",
+        rule_repo: "Snapshot of the rule repository at generation time for byte-identical reruns.",
+        rule_version: "Snapshot of the rule version (tag) used by this generation's run.",
+        context_count: "Cached count of context TXTP configs persisted for this generation.",
+        trigger_count: "Cached count of trigger TXTP configs persisted for this generation.",
+        enrichment_table_count: "Cached count of enrichment table definitions persisted for this generation.",
+        generated_context_count: "Cached count of generated context messages materialised under this generation.",
+        generated_trigger_count: "Cached count of generated trigger messages materialised under this generation.",
+        generated_enrichment_row_count: "Cached count of generated enrichment rows across all enrichment tables for this generation.",
+        context_field_config_count: "Cached count of context field strategy rows captured during wizard save.",
+        trigger_field_config_count: "Cached count of trigger field override rows captured during wizard save.",
+        enrichment_field_config_count: "Cached count of enrichment field strategy rows captured during wizard save.",
+        wizard_snapshot: "Frozen JSON snapshot of the wizard draft state used to produce this generation.",
+        generation_metadata: "Extensible JSON envelope for non-indexed per-generation attributes.",
+        created_by: "User id of the person who saved this iteration.",
+        created_by_email: "Cached email of the creator for audit display.",
+        created_at: "Generation creation timestamp set by Postgres `DEFAULT NOW()` on INSERT.",
+        updated_at: "Last-modification timestamp; generations are immutable after save so this rarely changes."
+      },
+      trs_suite_context_txtp_configs: {
+        id: "Surrogate primary key for one context TXTP configuration row.",
+        generation_id: "Foreign key to the owning generation; cascades on generation delete.",
+        txtp: "TXTP code (e.g., `pacs.008`) for which context messages will be generated.",
+        txtp_version: "Specific TXTP schema version pinned for this context configuration.",
+        display_order: "Wizard ordering of this TXTP within the context table (row 1 is the primary TXTP).",
+        message_count: "Number of synthetic context messages to generate for this TXTP (min 1).",
+        schema_snapshot: "Frozen JSON Schema for the TXTP captured at iteration save time for deterministic generation.",
+        sample_payload_snapshot: "Frozen TCS sample payload captured at iteration save time, used as the `keep_sample` baseline.",
+        faker_seed: "Optional deterministic seed for the synthetic data generator so reruns are reproducible.",
+        generator_profile: "JSON profile of generator settings (e.g., locale, currency) applied to this TXTP.",
+        created_at: "Row creation timestamp set by Postgres `DEFAULT NOW()` on INSERT."
+      },
+      trs_suite_context_field_strategies: {
+        id: "Surrogate primary key for one per-field generation strategy row.",
+        context_txtp_config_id: "Foreign key to the owning context TXTP config; cascades on parent delete.",
+        field_path: "Dot/slash path to the schema field this strategy controls (e.g., `Document.FIToFICstmrCdtTrf.GrpHdr.MsgId`).",
+        strategy_code: "Strategy enum value (`keep_sample`, `static`, `range`, `generated`, `null`, `skip`).",
+        static_value: "JSON literal used when `strategy_code = 'static'`; matches the schema field's type.",
+        range_min: "Lower numeric bound when `strategy_code = 'range'`.",
+        range_max: "Upper numeric bound when `strategy_code = 'range'`.",
+        generator_type: "Generator identifier when `strategy_code = 'generated'` (e.g., `iso20022.bic`, `iban`, `iso8601`).",
+        generator_options: "JSON options for the chosen generator (e.g., locale, length, format).",
+        is_required_override: "Optional flag forcing a field to be treated as required/optional regardless of schema.",
+        created_at: "Row creation timestamp set by Postgres `DEFAULT NOW()` on INSERT."
+      },
+      trs_suite_context_generated_messages: {
+        id: "Surrogate primary key for one generated context message row.",
+        context_txtp_config_id: "Foreign key back to the TXTP config this message was generated from.",
+        message_order: "Sequence number of this generated message within its TXTP config (min 1).",
+        payload_json: "Full generated message payload as JSON, used by the orchestrator's ODS init.",
+        payload_hash: "SHA-256 hex digest of `payload_json` for dedup and change detection (CHAR(64)).",
+        validation_status: "AJV validation outcome (`VALID` or `INVALID`) recorded at generation time.",
+        validation_errors: "AJV error array when `validation_status = 'INVALID'`; null on valid rows.",
+        generated_at: "Generation timestamp set by Postgres `DEFAULT NOW()` on INSERT."
+      },
+      trs_suite_trigger_txtp_configs: {
+        id: "Surrogate primary key for one trigger TXTP configuration row.",
+        generation_id: "Foreign key to the owning generation; cascades on generation delete.",
+        txtp: "TXTP code for which trigger messages will be submitted to the rule processor.",
+        txtp_version: "Specific TXTP schema version pinned for this trigger configuration.",
+        display_order: "Wizard ordering of this trigger TXTP card on Step 3.",
+        message_count: "Number of trigger messages to generate; sum across all trigger configs must be <= 15.",
+        link_to_context_pairs: "When true, each trigger message is paired with a context message via `EndtoEndID`.",
+        payload_template_json: "User-edited JSON template (pre-populated from the TCS sample) used as the trigger payload base.",
+        expected_independent_variable: "Expected numeric outcome from the rule processor, stored once at config time and never changed between reruns.",
+        expected_result_band: "Expected outcome band (`good`/`neutral`/`bad`/`error`) used for the comparison highlight on the results page.",
+        notes: "Free-text notes from the user about this trigger configuration.",
+        faker_seed: "Optional deterministic seed for reproducible trigger payload generation.",
+        generator_profile: "JSON generator profile (locale, currency, etc.) applied to this trigger config.",
+        created_at: "Row creation timestamp set by Postgres `DEFAULT NOW()` on INSERT."
+      },
+      trs_suite_trigger_field_overrides: {
+        id: "Surrogate primary key for one trigger field override row.",
+        trigger_txtp_config_id: "Foreign key to the owning trigger TXTP config; cascades on parent delete.",
+        field_path: "Dot/slash path to the trigger payload field this override controls.",
+        override_type: "Override enum value (`static`, `range`, `generated`, `remove`, `null`).",
+        static_value: "JSON literal used when `override_type = 'static'`.",
+        range_min: "Lower numeric bound when `override_type = 'range'`.",
+        range_max: "Upper numeric bound when `override_type = 'range'`.",
+        generator_type: "Generator identifier when `override_type = 'generated'`.",
+        generator_options: "JSON options for the chosen generator.",
+        created_at: "Row creation timestamp set by Postgres `DEFAULT NOW()` on INSERT."
+      },
+      trs_suite_trigger_generated_messages: {
+        id: "Surrogate primary key for one generated trigger message row.",
+        trigger_txtp_config_id: "Foreign key back to the TXTP config this trigger message was generated from.",
+        message_order: "Sequence number of this trigger message within its TXTP config (min 1).",
+        payload_json: "Full generated trigger payload as JSON, submitted to nats-utilities at run time.",
+        end_to_end_id: "ISO-20022 `EndtoEndID` value used to link this trigger to a context message when pairing is enabled.",
+        linked_context_message_id: "Foreign key to the paired context message; null when `link_to_context_pairs = false`.",
+        validation_status: "AJV validation outcome (`VALID` or `INVALID`) for the trigger payload.",
+        validation_errors: "AJV error array when invalid; null on valid rows.",
+        generated_at: "Generation timestamp set by Postgres `DEFAULT NOW()` on INSERT."
+      },
+      trs_suite_enrichment_tables: {
+        id: "Surrogate primary key for one enrichment table definition.",
+        generation_id: "Foreign key to the owning generation; cascades on generation delete.",
+        table_name: "Postgres identifier used when the orchestrator materialises this table in the ephemeral ODS (max 63 chars, validated against reserved keywords).",
+        table_order: "Wizard ordering of this enrichment table in the Saved Records list.",
+        row_count: "Number of rows to generate for this enrichment table (>= 0).",
+        payload_template_json: "User-provided JSON payload template defining the row shape.",
+        schema_template_json: "Optional JSON Schema for column types, derived from the payload template at save time.",
+        faker_profile: "JSON faker profile (locale, currency) applied to generated columns.",
+        created_at: "Row creation timestamp set by Postgres `DEFAULT NOW()` on INSERT."
+      },
+      trs_suite_enrichment_field_strategies: {
+        id: "Surrogate primary key for one column-level strategy row.",
+        enrichment_table_id: "Foreign key to the owning enrichment table; cascades on parent delete.",
+        column_name: "Name of the column this strategy controls within the enrichment table.",
+        column_type: "Declared column type (e.g., `numeric`, `text`, `jsonb`) used at ODS table creation time.",
+        strategy_code: "Strategy enum value (`static`, `range`, `generated`, `null`, `copy`).",
+        static_value: "JSON literal used when `strategy_code = 'static'`.",
+        range_min: "Lower numeric bound when `strategy_code = 'range'`.",
+        range_max: "Upper numeric bound when `strategy_code = 'range'`.",
+        generator_type: "Generator identifier when `strategy_code = 'generated'`.",
+        generator_options: "JSON options for the chosen generator.",
+        created_at: "Row creation timestamp set by Postgres `DEFAULT NOW()` on INSERT."
+      },
+      trs_suite_enrichment_generated_rows: {
+        id: "Surrogate primary key for one generated enrichment row.",
+        enrichment_table_id: "Foreign key back to the enrichment table this row belongs to; cascades on parent delete.",
+        row_order: "Sequence number of this row within its enrichment table (min 1).",
+        record_json: "Complete JSON record for the row, bulk-inserted into the ephemeral ODS at run time.",
+        generated_at: "Generation timestamp set by Postgres `DEFAULT NOW()` on INSERT."
+      },
+      trs_suite_context_sim_pairs: {
+        id: "Surrogate primary key for one context/trigger pair snapshot.",
+        generation_id: "Foreign key to the owning generation; cascades on generation delete.",
+        pair_order: "Submission order of this pair within the generation (min 1); drives the transaction loop sequence.",
+        context_message_id: "Foreign key to the context message used in this pair.",
+        trigger_message_id: "Foreign key to the trigger message used in this pair.",
+        context_payload_json: "Inline copy of the context payload at pair creation time; canonical for orchestrator reads.",
+        trigger_payload_json: "Inline copy of the trigger payload at pair creation time; canonical for orchestrator reads.",
+        validation_status: "Pair validation outcome (`VALID` or `INVALID`) captured at save time.",
+        pairing_key: "ISO-20022 `EndtoEndID` (or equivalent) that semantically joined the two messages.",
+        created_at: "Row creation timestamp set by Postgres `DEFAULT NOW()` on INSERT."
+      },
+      trs_simulation_runs: {
+        id: "Surrogate primary key for one run dispatch attempt.",
+        suite_id: "Foreign key to the parent suite; cascades on suite delete.",
+        generation_id: "Foreign key to the generation this run executed; cascades on generation delete.",
+        run_number: "Monotonically increasing run number scoped to (suite_id, generation_id); enforced UNIQUE.",
+        source_run_id: "Self-reference to the source run when this run was a quick-rerun copy; null for first runs.",
+        trigger_source: "How the run was triggered (`WIZARD`, `QUICK_RERUN`, etc.) for audit display.",
+        status: "Run lifecycle state (`ENV_PROVISIONING`, `RUNNING`, `COMPLETED`, `FAILED`, `TIMED_OUT`, `CANCELLED`).",
+        phase: "Current orchestrator phase (`NETWORK_CREATE`, `BASE_CONTAINERS_START`, `ODS_INIT`, etc.) for progress UI.",
+        triggered_by: "User id of the person who dispatched this run.",
+        triggered_by_email: "Cached email of the dispatcher for audit display.",
+        rule_repo: "Snapshot of the rule repo used by this run (matches `RegistryService.verifyImage` output).",
+        rule_version: "Snapshot of the rule tag used by this run.",
+        rule_image_tag: "Original Docker tag at dispatch time; preserved even if the tag is later overwritten upstream.",
+        rule_image_digest: "SHA-256 image digest pinned at dispatch time so reruns are byte-identical.",
+        docker_network_name: "Name of the dedicated bridge network (`sim-run-<id>`) created for this run.",
+        orchestrator_metadata: "JSON envelope for container IDs, port mappings, and other orchestrator bookkeeping.",
+        error_code: "Short machine-readable failure code when status is `FAILED`/`TIMED_OUT`.",
+        error_message: "Human-readable error message shown on the failure screen.",
+        started_at: "Timestamp when the orchestrator entered `RUNNING` phase; null until then.",
+        completed_at: "Timestamp when the run reached a terminal state; null while in flight.",
+        created_at: "Run row creation timestamp set by Postgres `DEFAULT NOW()` on INSERT.",
+        updated_at: "Last-modification timestamp auto-maintained by the `trs_set_updated_at()` trigger."
+      },
+      trs_simulation_run_events: {
+        id: "Surrogate primary key for one orchestrator/run event row.",
+        run_id: "Foreign key to the parent run; cascades on run delete.",
+        event_order: "Monotonically increasing sequence number for events within the run; used for ordered display.",
+        phase: "Run phase that was active when this event was emitted.",
+        level: "Severity level (`DEBUG`, `INFO`, `WARN`, `ERROR`).",
+        event_type: "Short event identifier (e.g., `CONTAINER_HEALTHY`, `NATS_RESPONSE_RECEIVED`).",
+        message: "Human-readable description of the event for the diagnostic log.",
+        details_json: "Structured JSON payload with event-specific fields (container ID, duration, etc.).",
+        occurred_at: "Timestamp when the event was emitted (defaults to `NOW()`)."
+      },
+      trs_simulation_run_results: {
+        id: "Surrogate primary key for one per-transaction result row.",
+        run_id: "Foreign key to the parent run; cascades on run delete.",
+        transaction_order: "Submission order of this transaction within the run; UNIQUE per run.",
+        trigger_message_id: "Foreign key to the trigger message that produced this result; may be null on early errors.",
+        trigger_message_external_id: "Snapshot of the trigger's `EndtoEndID` for log search without joining.",
+        trigger_txtp: "Snapshot of the trigger TXTP code for at-a-glance display in the results table.",
+        independent_variable: "Numeric outcome returned by the rule processor (`independent_variable`).",
+        result_band: "Outcome band (`good`/`neutral`/`bad`/`error`) for the band-coded result chip.",
+        expected_independent_variable: "Expected numeric outcome from the trigger config, copied here for side-by-side comparison.",
+        expected_result_band: "Expected outcome band from the trigger config, copied here for side-by-side comparison.",
+        notes: "Free-text notes (from the trigger config or per-transaction error message).",
+        rule_processor_response: "Raw JSON envelope returned by the rule processor for forensic inspection.",
+        received_at: "Timestamp when the result was received from nats-utilities (defaults to `NOW()`)."
+      },
+      trs_simulation_run_result_context_links: {
+        run_result_id: "Foreign key to the result row; part of the composite primary key.",
+        context_message_id: "Foreign key to the context message linked to this result; part of the composite primary key."
+      },
+      trs_simulation_run_artifacts: {
+        id: "Surrogate primary key for one stored artifact.",
+        run_id: "Foreign key to the parent run; cascades on run delete.",
+        artifact_type: "Artifact category (`CONTAINER_LOG`, `ODS_SQL`, `NATS_REQUEST`, `NATS_RESPONSE`, `RULE_PROCESSOR_RAW`, `ERROR_STACK`, `METRICS`, `OTHER`).",
+        artifact_name: "Optional display name for the artifact (e.g., container name, file label).",
+        content_text: "Plain-text content of the artifact (for logs and stack traces).",
+        content_json: "Structured JSON content of the artifact (for metrics, NATS payloads, etc.).",
+        created_at: "Artifact creation timestamp set by Postgres `DEFAULT NOW()` on INSERT."
+      }
+    };
+
+    const nf3Rows = [
+      ["trs_simulation_suites", "3NF with controlled denormalization", "Root entity is normalized; counters and last_run_at are intentional rollups."],
+      ["trs_suite_generations", "3NF with controlled denormalization", "Unique (suite_id, generation_number) preserves key; counters and rule snapshot fields are intentional."],
+      ["trs_suite_context_txtp_configs", "3NF", "Each row keyed to generation and TXTP dimensions; no transitive dependency issue."],
+      ["trs_suite_context_field_strategies", "3NF", "Field strategy attributes depend on (context_txtp_config_id, field_path)."],
+      ["trs_suite_context_generated_messages", "3NF", "Generated message facts keyed by config and message_order."],
+      ["trs_suite_trigger_txtp_configs", "3NF", "Trigger config attributes tied to generation and TXTP identity."],
+      ["trs_suite_trigger_field_overrides", "3NF", "Override semantics fully depend on trigger config and field path."],
+      ["trs_suite_trigger_generated_messages", "3NF", "Generated trigger message facts depend on trigger config/message_order."],
+      ["trs_suite_enrichment_tables", "3NF", "Enrichment table config is cleanly keyed by generation and table_name."],
+      ["trs_suite_enrichment_field_strategies", "3NF", "Column-level strategy depends on enrichment table and column_name."],
+      ["trs_suite_enrichment_generated_rows", "3NF", "Generated row data depends on enrichment_table_id and row_order."],
+      ["trs_suite_context_sim_pairs", "3NF with controlled denormalization", "Pair identity is normalized; payload copies are deliberate snapshots."],
+      ["trs_simulation_runs", "3NF with controlled denormalization", "Run identity normalized; copied rule/image metadata is immutable snapshot design."],
+      ["trs_simulation_run_events", "3NF", "Event log attributes depend on (run_id, event_order)."],
+      ["trs_simulation_run_results", "3NF", "Result row attributes depend on (run_id, transaction_order)."],
+      ["trs_simulation_run_result_context_links", "3NF", "Pure bridge table with composite key and no non-key attributes."],
+      ["trs_simulation_run_artifacts", "3NF", "Artifact rows keyed by run and artifact identity fields; no transitive columns."],
+    ];
+
+    function escHtml(v) {
+      return String(v)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function compactWhitespace(s) {
+      return s.replace(/\s+/g, " ").trim();
+    }
+
+    function splitClauses(body) {
+      const clauses = [];
+      let start = 0;
+      let depth = 0;
+      let inSingleQuote = false;
+      let prev = "";
+
+      for (let i = 0; i < body.length; i++) {
+        const ch = body[i];
+        if (ch === "'" && prev !== "\\") {
+          inSingleQuote = !inSingleQuote;
+        }
+        if (!inSingleQuote) {
+          if (ch === "(") depth += 1;
+          if (ch === ")") depth = Math.max(0, depth - 1);
+          if (ch === "," && depth === 0) {
+            const clause = body.slice(start, i).trim();
+            if (clause) clauses.push(clause);
+            start = i + 1;
+          }
+        }
+        prev = ch;
+      }
+
+      const tail = body.slice(start).trim();
+      if (tail) clauses.push(tail);
+      return clauses;
+    }
+
+    function parseSchema(sql) {
+      const tables = [];
+      const re = /CREATE TABLE public\.([a-zA-Z0-9_]+)\s*\(([\s\S]*?)\);/g;
+      let m;
+
+      while ((m = re.exec(sql)) !== null) {
+        const table = m[1];
+        const body = m[2];
+        const clauses = splitClauses(body);
+        const cols = [];
+        const constraints = [];
+
+        for (const rawClause of clauses) {
+          const clause = compactWhitespace(rawClause);
+          if (/^(CONSTRAINT|PRIMARY KEY|UNIQUE|CHECK|FOREIGN KEY)\b/i.test(clause)) {
+            constraints.push(clause);
+            continue;
+          }
+
+          const space = clause.search(/\s/);
+          if (space <= 0) continue;
+
+          const col = clause.slice(0, space);
+          const rest = clause.slice(space + 1).trim();
+
+          const kw = rest.match(/\s+(NOT NULL|NULL|DEFAULT|REFERENCES|CHECK|CONSTRAINT|PRIMARY KEY|UNIQUE)\b/i);
+          const type = (kw ? rest.slice(0, kw.index) : rest).trim();
+
+          cols.push({
+            name: col,
+            type,
+            raw: rest,
+          });
+        }
+
+        tables.push({ name: table, columns: cols, constraints });
+      }
+
+      return tables;
+    }
+
+    function sizeLimit(type) {
+      const t = type.toUpperCase();
+      const v = t.match(/^VARCHAR\((\d+)\)$/);
+      if (v) return v[1] + " chars";
+      const c = t.match(/^CHAR\((\d+)\)$/);
+      if (c) return c[1] + " chars";
+      if (t.includes("TEXT")) return "unbounded text";
+      if (t.includes("JSONB")) return "JSONB (practical app cap)";
+      if (t.includes("NUMERIC")) return "numeric precision unspecified";
+      if (t.includes("TIMESTAMPTZ")) return "timestamp with tz";
+      if (t.includes("BIGSERIAL") || t.includes("BIGINT")) return "64-bit integer";
+      if (t.includes("INTEGER")) return "32-bit integer";
+      if (t.includes("BOOLEAN")) return "true/false";
+      return "n/a";
+    }
+
+    function deriveConstraints(col, table) {
+      const out = [];
+      const raw = col.raw;
+      if (/PRIMARY KEY/i.test(raw)) out.push("PRIMARY KEY");
+      if (/NOT NULL/i.test(raw)) out.push("NOT NULL");
+      if (/UNIQUE/i.test(raw)) out.push("UNIQUE");
+
+      const def = raw.match(/DEFAULT\s+(.+?)(?=\s+(NOT NULL|NULL|REFERENCES|CHECK|CONSTRAINT|PRIMARY KEY|UNIQUE)\b|$)/i);
+      if (def) out.push("DEFAULT " + def[1].trim());
+
+      const fk = raw.match(/REFERENCES\s+([a-zA-Z0-9_.]+\([a-zA-Z0-9_]+\))(\s+ON DELETE\s+[A-Z]+)?/i);
+      if (fk) {
+        out.push("FK " + fk[1] + (fk[2] ? fk[2].replace(/\s+/g, " ") : ""));
+      }
+
+      const inCheck = raw.match(/CHECK\s*\((.+)\)/i);
+      if (inCheck) out.push("CHECK (" + compactWhitespace(inCheck[1]) + ")");
+
+      for (const tc of table.constraints) {
+        const uq = tc.match(/UNIQUE\s*\(([^)]+)\)/i);
+        if (uq) {
+          const cols = uq[1].split(",").map((x) => x.trim());
+          if (cols.includes(col.name)) out.push("UNIQUE (" + cols.join(", ") + ")");
+        }
+
+        const pk = tc.match(/PRIMARY KEY\s*\(([^)]+)\)/i);
+        if (pk) {
+          const cols = pk[1].split(",").map((x) => x.trim());
+          if (cols.includes(col.name)) out.push("PRIMARY KEY (" + cols.join(", ") + ")");
+        }
+
+        const chk = tc.match(/CHECK\s*\((.+)\)$/i);
+        if (chk) {
+          const expr = compactWhitespace(chk[1]);
+          const re = new RegExp("\\\\b" + col.name + "\\\\b", "i");
+          if (re.test(expr)) out.push("CHECK (" + expr + ")");
+        }
+      }
+
+      const dedupe = [];
+      for (const c of out) {
+        if (!dedupe.includes(c)) dedupe.push(c);
+      }
+      return dedupe;
+    }
+
+    function badgeClass(status) {
+      if (status === "implemented") return "b-implemented";
+      if (status === "planned") return "b-planned";
+      if (status === "internal") return "b-internal";
+      return "b-none";
+    }
+
+    function badgeText(status) {
+      if (status === "implemented") return "Implemented";
+      if (status === "planned") return "Planned";
+      if (status === "internal") return "Internal planned";
+      return "Not evidenced";
+    }
+
+    function cleanUsageCopy(text) {
+      return String(text).replace(/^(Implemented|Planned|Internal planned|Not evidenced)\s*:?\s*/i, "");
+    }
+
+    function renderNf3() {
+      const body = document.getElementById("nf3-body");
+      body.innerHTML = nf3Rows
+        .map((row) =>
+          "<tr>" +
+          "<td>" + escHtml(row[0]) + "</td>" +
+          "<td>" + escHtml(row[1]) + "</td>" +
+          "<td>" + escHtml(row[2]) + "</td>" +
+          "</tr>"
+        )
+        .join("");
+    }
+
+    function renderMatrix() {
+      const tables = parseSchema(sqlText);
+      const byName = new Map(tables.map((t) => [t.name, t]));
+      const ordered = tableOrder
+        .map((name) => byName.get(name))
+        .filter(Boolean);
+
+      const index = document.getElementById("matrix-index");
+      const container = document.getElementById("matrix-container");
+
+      index.innerHTML = ordered
+        .map((t) => '<a href="#table-' + escHtml(t.name) + '">' + escHtml(t.name) + '</a>')
+        .join("");
+
+      container.innerHTML = ordered.map((table) => {
+        const usage = tableUsage[table.name] || {
+          status: "none",
+          summary: "No endpoint evidence found.",
+          defaultColumnUsage: "No endpoint evidence found."
+        };
+
+        const tableDescriptions = columnDescriptions[table.name] || {};
+
+        const rows = table.columns.map((col) => {
+          const constraints = deriveConstraints(col, table);
+          const isPrimaryKey = constraints.some((c) => /PRIMARY KEY/i.test(c));
+          const nullable = (/NOT NULL/i.test(col.raw) || isPrimaryKey) ? "No" : "Yes";
+          const usageText = cleanUsageCopy((usage.overrides && usage.overrides[col.name]) || usage.defaultColumnUsage);
+          const purposeText = tableDescriptions[col.name] || "Not documented.";
+
+          return "<tr>" +
+            "<td><strong>" + escHtml(col.name) + "</strong></td>" +
+            "<td>" + escHtml(col.type) + "</td>" +
+            "<td>" + escHtml(sizeLimit(col.type)) + "</td>" +
+            "<td>" + escHtml(nullable) + "</td>" +
+            "<td>" + escHtml(constraints.length ? constraints.join("; ") : "none") + "</td>" +
+            "<td>" + escHtml(purposeText) + "</td>" +
+            "<td><span class=\"badge " + badgeClass(usage.status) + "\">" + badgeText(usage.status) + "</span> <span class=\"usage-copy\">" + escHtml(usageText) + "</span></td>" +
+            "</tr>";
+        }).join("");
+
+        return "<article class=\"table-card\" id=\"table-" + escHtml(table.name) + "\">" +
+          "<div class=\"table-head\">" +
+            "<a class=\"back-top\" href=\"#top\">Back to top</a>" +
+            "<h3>" + escHtml(table.name) + "</h3>" +
+            "<p><span class=\"badge " + badgeClass(usage.status) + "\">" + badgeText(usage.status) + "</span> <span class=\"usage-copy\">" + escHtml(cleanUsageCopy(usage.summary)) + "</span></p>" +
+          "</div>" +
+          "<div style=\"overflow:auto;\">" +
+          "<table class=\"tight\">" +
+            "<thead><tr>" +
+              "<th>Column</th>" +
+              "<th>Type</th>" +
+              "<th>Size Limit</th>" +
+              "<th>Nullable</th>" +
+              "<th>Constraints</th>" +
+              "<th>Purpose</th>" +
+              "<th>Endpoint Usage</th>" +
+            "</tr></thead>" +
+            "<tbody>" + rows + "</tbody>" +
+          "</table>" +
+          "</div>" +
+          "</article>";
+      }).join("");
+    }
+
+    const THEME_STORAGE_KEY = "db-migration-review-theme";
+    const themeToggle = document.getElementById("theme-toggle");
+
+    function applyTheme(theme) {
+      const normalized = theme === "dark" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", normalized);
+
+      if (themeToggle) {
+        const isDark = normalized === "dark";
+        themeToggle.textContent = isDark ? "Light mode" : "Dark mode";
+        themeToggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+      }
+    }
+
+    function initializeTheme() {
+      let initialTheme = "light";
+
+      try {
+        const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+        if (storedTheme === "light" || storedTheme === "dark") {
+          initialTheme = storedTheme;
+        } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          initialTheme = "dark";
+        }
+      } catch (error) {
+        initialTheme = "light";
+      }
+
+      applyTheme(initialTheme);
+    }
+
+    if (themeToggle) {
+      themeToggle.addEventListener("click", () => {
+        const currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        const nextTheme = currentTheme === "dark" ? "light" : "dark";
+        applyTheme(nextTheme);
+        try {
+          localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+        } catch (error) {
+          // Ignore storage errors; theme still applies for this session.
+        }
+      });
+    }
+
+    initializeTheme();
+
+    renderNf3();
+    renderMatrix();
+  </script>
+</body>
+</html>
