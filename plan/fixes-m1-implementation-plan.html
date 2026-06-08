@@ -1,0 +1,1267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fixes M1 Implementation Plan</title>
+  <style>
+    :root {
+      --panel: #ffffff;
+      --ink: #0d1b2a;
+      --muted: #4f6173;
+      --brand: #0b6e99;
+      --ok: #227a3b;
+      --warn: #c97b00;
+      --danger: #b53a2d;
+      --border: #d8e0e7;
+      --shadow: 0 10px 25px rgba(13, 27, 42, 0.08);
+      --page-bg:
+        radial-gradient(circle at 10% 10%, rgba(20, 163, 139, 0.14), transparent 28%),
+        radial-gradient(circle at 90% 10%, rgba(11, 110, 153, 0.14), transparent 32%),
+        linear-gradient(180deg, #f8fbfd, #edf3f7 60%, #eef2f5);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--page-bg);
+      color: var(--ink);
+      font-family: "Space Grotesk", "Segoe UI", "Tahoma", sans-serif;
+      line-height: 1.45;
+      scroll-behavior: smooth;
+      transition: background 220ms ease, color 220ms ease;
+    }
+
+    .wrap {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 18px 20px 48px;
+    }
+
+    .top-controls {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+
+    #theme-toggle {
+      border: 1px solid #b8cfdf;
+      border-radius: 999px;
+      background: #f6fbff;
+      color: #163952;
+      font-size: 0.84rem;
+      font-weight: 700;
+      padding: 8px 14px;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(10, 34, 56, 0.08);
+      transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+    }
+
+    #theme-toggle:hover {
+      background: #e9f4fb;
+      border-color: #97bfd8;
+    }
+
+    .hero {
+      border: 1px solid #b8d3df;
+      background:
+        linear-gradient(120deg, #eef8fd, #f3fffb 52%, #ffffff),
+        repeating-linear-gradient(
+          -45deg,
+          rgba(11, 110, 153, 0.05) 0,
+          rgba(11, 110, 153, 0.05) 8px,
+          rgba(255, 255, 255, 0) 8px,
+          rgba(255, 255, 255, 0) 16px
+        );
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+      margin-bottom: 14px;
+    }
+
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      letter-spacing: 0.2px;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 980px;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .kpi {
+      background: rgba(255, 255, 255, 0.84);
+      border: 1px solid #cfe1ea;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .kpi .n {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--brand);
+    }
+
+    .kpi .l {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .toc {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      margin: 0 0 14px;
+      border: 1px solid #d3dee7;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 5px 16px rgba(12, 28, 48, 0.07);
+      padding: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .toc a {
+      text-decoration: none;
+      color: #123148;
+      border: 1px solid #d4e3ee;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      background: #f8fcff;
+    }
+
+    .toc a:hover {
+      background: #eaf6ff;
+      border-color: #b2d8ef;
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 18px 18px 16px;
+      margin-bottom: 14px;
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 1.25rem;
+      color: #132f46;
+    }
+
+    h3 {
+      margin: 16px 0 8px;
+      font-size: 1.03rem;
+      color: #1d415f;
+    }
+
+    p, li {
+      color: #1f374d;
+    }
+
+    ul, ol {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .note {
+      background: #f5fbff;
+      border-left: 4px solid #58a9d6;
+      border-radius: 8px;
+      padding: 9px 10px;
+      margin: 8px 0;
+      color: #274a66;
+    }
+
+    .warn {
+      background: #fff9ef;
+      border-left-color: #d29922;
+    }
+
+    .ok {
+      background: #f2fbf5;
+      border-left-color: #2f8f47;
+    }
+
+    .danger {
+      background: #fff3f1;
+      border-left-color: #d04b3f;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      border: 1px solid transparent;
+      margin-right: 6px;
+      white-space: nowrap;
+    }
+
+    .b-due {
+      background: #e7f7ed;
+      color: #145c2d;
+      border-color: #9fd7b1;
+    }
+
+    .b-missing {
+      background: #fff3f1;
+      color: #852a22;
+      border-color: #e2a8a2;
+    }
+
+    .b-partial {
+      background: #fff6e7;
+      color: #7b4d00;
+      border-color: #e4c98e;
+    }
+
+    .b-done {
+      background: #ebf5ff;
+      color: #0c4978;
+      border-color: #9ec6e8;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 0.86rem;
+      table-layout: fixed;
+    }
+
+    th, td {
+      border: 1px solid #d7e0e8;
+      padding: 8px;
+      vertical-align: top;
+      text-align: left;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    th {
+      background: #f2f8fc;
+      color: #18374f;
+    }
+
+    .tight th, .tight td {
+      padding: 6px;
+    }
+
+    .mono {
+      font-family: "IBM Plex Mono", "Consolas", monospace;
+      font-size: 0.82rem;
+    }
+
+    .back-top {
+      float: right;
+      font-size: 0.78rem;
+      color: #0f6591;
+      text-decoration: none;
+    }
+
+    .footer {
+      text-align: center;
+      color: #4b6174;
+      font-size: 0.82rem;
+      padding: 10px;
+    }
+
+    html[data-theme="dark"] {
+      --ink: #e4edf4;
+      --muted: #b2c3d1;
+      --panel: #12212f;
+      --border: #314a5d;
+      --shadow: 0 10px 25px rgba(0, 0, 0, 0.34);
+      --page-bg:
+        radial-gradient(circle at 12% 8%, rgba(22, 97, 126, 0.32), transparent 28%),
+        radial-gradient(circle at 88% 10%, rgba(24, 122, 95, 0.26), transparent 34%),
+        linear-gradient(180deg, #0b1620, #0e1b28 60%, #102031);
+    }
+
+    html[data-theme="dark"] .hero {
+      border-color: #3a566d;
+      background:
+        linear-gradient(120deg, #172a39, #1a2d40 52%, #1d3349),
+        repeating-linear-gradient(
+          -45deg,
+          rgba(128, 181, 216, 0.08) 0,
+          rgba(128, 181, 216, 0.08) 8px,
+          rgba(255, 255, 255, 0) 8px,
+          rgba(255, 255, 255, 0) 16px
+        );
+    }
+
+    html[data-theme="dark"] .hero p,
+    html[data-theme="dark"] p,
+    html[data-theme="dark"] li {
+      color: #c7d7e4;
+    }
+
+    html[data-theme="dark"] .kpi {
+      background: rgba(15, 31, 44, 0.84);
+      border-color: #3e617b;
+    }
+
+    html[data-theme="dark"] .toc {
+      border-color: #3e617b;
+      background: rgba(17, 33, 47, 0.92);
+      box-shadow: 0 5px 16px rgba(0, 0, 0, 0.32);
+    }
+
+    html[data-theme="dark"] .toc a {
+      color: #d9e9f5;
+      border-color: #4a6680;
+      background: #1c3448;
+    }
+
+    html[data-theme="dark"] .toc a:hover {
+      background: #25435d;
+      border-color: #5c7d9c;
+    }
+
+    html[data-theme="dark"] h2 {
+      color: #d6e8f8;
+    }
+
+    html[data-theme="dark"] h3 {
+      color: #c6dbef;
+    }
+
+    html[data-theme="dark"] .note {
+      background: #193449;
+      color: #d2e4f2;
+      border-left-color: #66a9d1;
+    }
+
+    html[data-theme="dark"] .warn {
+      background: #3a311c;
+      border-left-color: #d3a14a;
+    }
+
+    html[data-theme="dark"] .ok {
+      background: #1e3b2b;
+      border-left-color: #52a96a;
+    }
+
+    html[data-theme="dark"] .danger {
+      background: #3a2424;
+      border-left-color: #d06e66;
+    }
+
+    html[data-theme="dark"] th,
+    html[data-theme="dark"] td {
+      border-color: #385266;
+    }
+
+    html[data-theme="dark"] th {
+      background: #21384d;
+      color: #d3e5f5;
+    }
+
+    html[data-theme="dark"] .footer {
+      color: #afc2d3;
+    }
+
+    html[data-theme="dark"] #theme-toggle {
+      border-color: #4b6e88;
+      background: #1d364b;
+      color: #d9e9f6;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.28);
+    }
+
+    html[data-theme="dark"] #theme-toggle:hover {
+      background: #27445d;
+      border-color: #6b8ca9;
+    }
+
+    @media (max-width: 900px) {
+      .meta {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .wrap {
+        padding: 12px;
+      }
+      .hero h1 {
+        font-size: 1.5rem;
+      }
+      .meta {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body id="top">
+  <div class="wrap">
+    <div class="top-controls">
+      <button id="theme-toggle" type="button" aria-label="Toggle color theme" aria-pressed="false">Dark mode</button>
+    </div>
+
+    <header class="hero">
+      <h1>Fixes M1 Endpoint Implementation Plan</h1>
+      <p>
+        Read-only discovery of plan documents followed by a concrete endpoint implementation plan for Rule Studio and Admin Service.
+        Scope is endpoints scheduled to be implemented by 1 June (Day 1 to Day 5).
+      </p>
+      <div class="meta">
+        <div class="kpi"><div class="n">12</div><div class="l">Endpoints due by 1 June</div></div>
+        <div class="kpi"><div class="n">0</div><div class="l">Fully contract-compliant today</div></div>
+        <div class="kpi"><div class="n">12</div><div class="l">Missing or partial</div></div>
+        <div class="kpi"><div class="n">2 repos</div><div class="l">Rule Studio + Admin Service</div></div>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#branching">Branching Note</a>
+      <a href="#sources">Source Docs Reviewed</a>
+      <a href="#endpoint-list">Endpoint List by 1 June</a>
+      <a href="#gap-analysis">Current Gap Analysis</a>
+      <a href="#implementation-plan">Concrete Implementation Plan</a>
+      <a href="#test-plan">Test Plan</a>
+      <a href="#dod">Definition of Done</a>
+      <a href="#pr91-findings">PR91 Findings (Endpoints 1 and 2)</a>
+      <a href="#pr374-95-92-findings">PR374, PR95, PR92 Findings</a>
+      <a href="#contract-fixes-retained">Contract Fixes (Retained Endpoints)</a>
+    </nav>
+
+    <section id="branching">
+      <h2>Branching Note <a class="back-top" href="#top">Back to top</a></h2>
+      <div class="note ok">
+        Required for both repositories: when implementation starts, create branch feat-paysys-sim-studio-fixes-m1 from feat-paysys-sim-studio.
+      </div>
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>Repository</th>
+            <th>Base Branch</th>
+            <th>Implementation Branch</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>rule-studio</td>
+            <td class="mono">feat-paysys-sim-studio</td>
+            <td class="mono">feat-paysys-sim-studio-fixes-m1</td>
+          </tr>
+          <tr>
+            <td>admin-service</td>
+            <td class="mono">feat-paysys-sim-studio</td>
+            <td class="mono">feat-paysys-sim-studio-fixes-m1</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="sources">
+      <h2>Source Docs Reviewed <a class="back-top" href="#top">Back to top</a></h2>
+      <ul>
+        <li>plan/implementation_plan.md</li>
+        <li>plan/trs_story_implementation_report.original.md</li>
+        <li>plan/trs_simulation_gantt.md</li>
+        <li>plan/branch-plan.md</li>
+      </ul>
+      <div class="note">
+        Date cut-off used: all stories and tasks with planned work ending on or before 1 June (Day 1 to Day 5).
+      </div>
+    </section>
+
+    <section id="endpoint-list">
+      <h2>API Endpoints Due by 1 June <a class="back-top" href="#top">Back to top</a></h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Endpoint (Rule Studio public)</th>
+            <th>Planned Day / Date</th>
+            <th>Source Evidence</th>
+            <th>Status in Code Today</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td class="mono">GET /api/v1/simulation-studio/registry/repos</td>
+            <td>Day 1 (21 May)</td>
+            <td class="mono">implementation_plan.md:789, trs_simulation_gantt.md:237</td>
+            <td><span class="badge b-missing">Missing</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td class="mono">GET /api/v1/simulation-studio/registry/repos/:repo/tags</td>
+            <td>Day 1 (21 May)</td>
+            <td class="mono">implementation_plan.md:789, trs_simulation_gantt.md:237</td>
+            <td><span class="badge b-missing">Missing</span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td class="mono">GET /api/v1/simulation-studio/txtp-types</td>
+            <td>Day 2 (22 May)</td>
+            <td class="mono">implementation_plan.md:791, implementation_plan.md:914</td>
+            <td><span class="badge b-missing">Missing</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td class="mono">GET /api/v1/simulation-studio/txtp-types/:txtp/:version/schema</td>
+            <td>Day 2 (22 May)</td>
+            <td class="mono">implementation_plan.md:914</td>
+            <td><span class="badge b-missing">Missing</span></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td class="mono">GET /api/v1/simulation-studio/txtp-types/:txtp/:version/sample</td>
+            <td>Day 2 (22 May)</td>
+            <td class="mono">implementation_plan.md:914</td>
+            <td><span class="badge b-missing">Missing</span></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td class="mono">POST /api/v1/simulation-studio/suites</td>
+            <td>Day 2 (22 May)</td>
+            <td class="mono">implementation_plan.md:791, trs_simulation_gantt.md:239</td>
+            <td><span class="badge b-partial">Partial</span> Response/validation contract drift</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td class="mono">GET /api/v1/simulation-studio/suites/:id</td>
+            <td>Day 4 (29 May)</td>
+            <td class="mono">implementation_plan.md:1072, trs_simulation_gantt.md:250</td>
+            <td><span class="badge b-partial">Partial</span> Missing expected summary payload shape details</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td class="mono">PUT /api/v1/simulation-studio/suites/:id/draft</td>
+            <td>Day 1 to 2 (21 to 22 May)</td>
+            <td class="mono">implementation_plan.md:531, trs_simulation_gantt.md:229</td>
+            <td><span class="badge b-partial">Partial</span> PATCH /suites/:id exists in PR92 and PR374 as an alternate contract</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td class="mono">POST /api/v1/simulation-studio/suites/:id/generate/context</td>
+            <td>Day 3 (25 May)</td>
+            <td class="mono">implementation_plan.md:915, trs_simulation_gantt.md:232, 244</td>
+            <td><span class="badge b-missing">Missing</span></td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td class="mono">POST /api/v1/simulation-studio/suites/:id/run</td>
+            <td>Day 4 (29 May) dispatcher contract, completed on Day 5 (1 June) as T-01 full flow</td>
+            <td class="mono">implementation_plan.md:1072, 1087, 1151, trs_simulation_gantt.md:77, 250</td>
+            <td><span class="badge b-partial">Partial</span> Contract missing</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td class="mono">GET /api/v1/simulation-studio/suites</td>
+            <td>Day 5 (1 June)</td>
+            <td class="mono">implementation_plan.md:657, 724, 725, trs_simulation_gantt.md:73</td>
+            <td><span class="badge b-partial">Partial</span> Query/response contract aliasing gaps</td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td class="mono">GET /api/v1/simulation-studio/suites/:id/runs/:runId/status</td>
+            <td>Day 5 (1 June)</td>
+            <td class="mono">implementation_plan.md:1151, 1178, 1202, trs_simulation_gantt.md:77, 260</td>
+            <td><span class="badge b-missing">Missing</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note warn">
+        Day 5 extensions are present in codebase foundations, but retained endpoints still need contract-alignment fixes before they can be treated as complete against fixes-m1 planned contracts.
+      </div>
+    </section>
+
+    <section id="gap-analysis">
+      <h2>Current Gap Analysis in Repositories <a class="back-top" href="#top">Back to top</a></h2>
+      <h3>Rule Studio Backend (current)</h3>
+      <ul>
+        <li>Implemented: suites list, suites by id, create suite, patch suite in simulation-studio controller and service.</li>
+        <li>Partial: dedicated draft route is not present, but PATCH suites/:id can already persist wizard_progress and metadata.</li>
+        <li>Missing: registry endpoints, txtp endpoints, generate context endpoint, full run endpoint behavior, run-status endpoint.</li>
+        <li>AdminServiceClient currently exposes simulation suites CRUD only for simulation-studio namespace and lacks run/start + run-status methods.</li>
+      </ul>
+
+      <h3>Admin Service (current)</h3>
+      <ul>
+        <li>Implemented: POST/GET/GET by id/PATCH for /v1/admin/trs/simulation-studio/suites and repository SQL on trs_simulation_suites.</li>
+        <li>Partial: draft persistence can be served by the existing PATCH suites/:id handler, but no dedicated PUT draft route exists.</li>
+        <li>Missing: generate context persistence/validation hook, run start handler, run-status handler.</li>
+        <li>Reusable existing non-simulation endpoints already exist for transaction types, config schema, and sample payload under /v1/admin/config.</li>
+      </ul>
+
+      <h3>Repository Pattern Alignment</h3>
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>Rule Studio Pattern</th>
+            <th>Admin Service Pattern</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Routing</td>
+            <td>Nest controller methods under simulation-studio module.</td>
+            <td>Fastify route registration in router.ts with privilege key mapping.</td>
+          </tr>
+          <tr>
+            <td>Logic</td>
+            <td>Service class delegates to AdminServiceClient.</td>
+            <td>Logic service functions call repository functions.</td>
+          </tr>
+          <tr>
+            <td>Persistence</td>
+            <td>No direct DB access; proxy to admin service.</td>
+            <td>SQL repositories in repositories/simulation-studio.</td>
+          </tr>
+          <tr>
+            <td>Contracts</td>
+            <td>Class-validator DTOs in simulation-studio dto module.</td>
+            <td>Type interfaces and DTO-like payload contracts in interface module.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="implementation-plan">
+      <h2>Concrete Implementation Plan (Fixes M1) <a class="back-top" href="#top">Back to top</a></h2>
+      <div class="note ok">
+        This plan is implementation-ready and scoped through Day 5 (1 June), including run-start and status-polling contracts.
+      </div>
+
+      <h3>Phase 0: Branch Setup and Safety Checks</h3>
+      <ol>
+        <li>Create and push feat-paysys-sim-studio-fixes-m1 from feat-paysys-sim-studio in rule-studio.</li>
+        <li>Create and push feat-paysys-sim-studio-fixes-m1 from feat-paysys-sim-studio in admin-service.</li>
+        <li>Confirm no unrelated file changes are staged in either repository before coding starts.</li>
+      </ol>
+
+      <h3>Phase 1: Rule Studio Endpoint Surface (Controller and DTO)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Work Item</th>
+            <th>Files</th>
+            <th>Concrete Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Add missing routes</td>
+            <td class="mono">rule-studio/backend/src/services/simulation-studio/simulation-studio.controller.ts</td>
+            <td>Add controller methods for endpoints 1 to 5, 8 to 10, and 12 while preserving existing claim guards and swagger pattern.</td>
+          </tr>
+          <tr>
+            <td>Add request and response DTOs</td>
+            <td class="mono">rule-studio/backend/src/services/simulation-studio/dto/index.ts</td>
+            <td>Introduce DTOs for UpdateDraft, GenerateContext request and response, Run contract response, RegistryRepo list, RegistryTag list, Txtp list and schema/sample responses.</td>
+          </tr>
+          <tr>
+            <td>Keep backward compatibility</td>
+            <td class="mono">rule-studio/backend/src/services/simulation-studio/dto/index.ts</td>
+            <td>Do not remove existing PatchSimulationSuitesDto and existing suites endpoints in fixes-m1.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Phase 2: Rule Studio Service and Admin Client Wiring</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Work Item</th>
+            <th>Files</th>
+            <th>Concrete Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Service method additions</td>
+            <td class="mono">rule-studio/backend/src/services/simulation-studio/simulation-studio.service.ts</td>
+            <td>Add service methods for new endpoints and normalize payload shape for draft/update and run contract calls.</td>
+          </tr>
+          <tr>
+            <td>Admin client constants</td>
+            <td class="mono">rule-studio/backend/src/constants/constant.ts</td>
+            <td>Add constants for registry repos, registry tags, txtp-types, draft, generate/context, run, and run-status routes under simulation-studio base.</td>
+          </tr>
+          <tr>
+            <td>Admin client methods</td>
+            <td class="mono">rule-studio/backend/src/services/admin-service-client.ts</td>
+            <td>Add typed methods invoking admin endpoints for draft, generate context, run start, run status, and pass-through txtp/schema/sample sources.</td>
+          </tr>
+          <tr>
+            <td>Reuse existing config calls</td>
+            <td class="mono">rule-studio/backend/src/services/admin-service-client.ts</td>
+            <td>Use existing admin config endpoints as internal data source for simulation-studio txtp endpoints, avoiding duplicate admin SQL logic.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Phase 3: Admin Service Routing and Handler Layer</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Work Item</th>
+            <th>Files</th>
+            <th>Concrete Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Privilege keys</td>
+            <td class="mono">admin-service/src/router.ts</td>
+            <td>Add privilege keys for updateDraft, generateContext, runStart, runStatus, registryRepos, registryRepoTags, and simulation txtp endpoints.</td>
+          </tr>
+          <tr>
+            <td>Route registration</td>
+            <td class="mono">admin-service/src/router.ts</td>
+            <td>Add Fastify routes under /v1/admin/trs/simulation-studio matching endpoints due by 1 June.</td>
+          </tr>
+          <tr>
+            <td>Controller handlers</td>
+            <td class="mono">admin-service/src/app.controller.ts</td>
+            <td>Add handlers for PUT draft, POST generate/context, POST run, GET run status, plus simulation-studio namespaced proxies for txtp/schema/sample.</td>
+          </tr>
+          <tr>
+            <td>No duplicate business logic</td>
+            <td class="mono">admin-service/src/app.controller.ts</td>
+            <td>For txtp/schema/sample, proxy to existing getTransactionTypesHandler, getConfigByTransactionTypeHandler, getPayloadByTransactionTypeHandler logic patterns.</td>
+          </tr>
+          <tr>
+            <td>Reuse existing suite patch contract</td>
+            <td class="mono">admin-service/src/app.controller.ts and admin-service/src/router.ts</td>
+            <td>Do not re-implement draft persistence internals; add a PUT draft alias only if needed, mapped to the existing patch/update suite pipeline.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Phase 4: Admin Logic and Repository Work</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Endpoint</th>
+            <th>Implementation Strategy</th>
+            <th>Files</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">PUT /suites/:id/draft</td>
+            <td>
+              Reuse existing PATCH suites/:id persistence path for wizard_progress and metadata;
+              implement a contract alias (PUT draft) at Rule Studio and optionally Admin router level without duplicating repository logic.
+            </td>
+            <td class="mono">admin-service/src/app.controller.ts, admin-service/src/router.ts, and existing simulation-suites logic/repository</td>
+          </tr>
+          <tr>
+            <td class="mono">POST /suites/:id/generate/context</td>
+            <td>
+              Deliver Day-3 contract: validate request shape, resolve schema and sample payload source,
+              generate deterministic row payloads, return rows or 422 per-row validation detail.
+            </td>
+            <td class="mono">admin-service/src/services/simulation-studio/context-generation.logic.service.ts (new) with a small repository helper only if needed</td>
+          </tr>
+          <tr>
+            <td class="mono">POST /suites/:id/run</td>
+            <td>
+              Complete Day-5 T-01 flow: validate suite and claims, verify image digest, call saveIterationTransactional,
+              dispatch orchestrator asynchronously, and return stable runId + ENV_PROVISIONING response.
+            </td>
+            <td class="mono">admin-service/src/services/simulation-studio/run-dispatch.logic.service.ts (new), app.controller handler, and run repository helper(s)</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /suites/:id/runs/:runId/status</td>
+            <td>
+              Add Day-5 polling contract response with status, phase, optional error_message, and optional partialResults shape.
+              Keep results endpoint implementation in Day-7 scope.
+            </td>
+            <td class="mono">admin-service/src/services/simulation-studio/run-status.logic.service.ts (new) and app.controller handler</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Phase 5: Endpoint Contract Matrix to Implement in M1</h3>
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>Endpoint</th>
+            <th>Rule Studio Action</th>
+            <th>Admin Service Action</th>
+            <th>M1 Contract Output</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">GET /simulation-studio/registry/repos</td>
+            <td>Add controller, service, client method</td>
+            <td>Add route and handler returning list from registry integration source</td>
+            <td>Array of repo objects for Rule picker</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /simulation-studio/registry/repos/:repo/tags</td>
+            <td>Add controller, service, client method</td>
+            <td>Add route and handler returning tags sorted by latest update</td>
+            <td>Array of tag objects including digest metadata</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /simulation-studio/txtp-types</td>
+            <td>Add endpoint as simulation-studio namespace alias</td>
+            <td>Add route alias to existing transaction-types source</td>
+            <td>TXTP list normalized for wizard dropdowns</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /simulation-studio/txtp-types/:txtp/:version/schema</td>
+            <td>Add endpoint and service call</td>
+            <td>Add route alias to existing config schema source</td>
+            <td>Schema object response</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /simulation-studio/txtp-types/:txtp/:version/sample</td>
+            <td>Add endpoint and service call</td>
+            <td>Add route alias to existing payload source</td>
+            <td>Sample payload object response</td>
+          </tr>
+          <tr>
+            <td class="mono">PUT /simulation-studio/suites/:id/draft</td>
+            <td>Add endpoint alias and DTO validation mapped to existing patch semantics</td>
+            <td>Reuse existing PATCH /suites/:id route and handler internals</td>
+            <td>Updated wizard_progress and draft metadata confirmation via compatibility contract</td>
+          </tr>
+          <tr>
+            <td class="mono">POST /simulation-studio/suites/:id/generate/context</td>
+            <td>Add endpoint and DTO validation</td>
+            <td>Add route and context generation logic</td>
+            <td>rows[] or 422 with row-level errors</td>
+          </tr>
+          <tr>
+            <td class="mono">POST /simulation-studio/suites/:id/run</td>
+            <td>Add endpoint for full Day-5 run-start flow</td>
+            <td>Add route and full T-01 handler path</td>
+            <td>runId + ENV_PROVISIONING from saveIterationTransactional + dispatch</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /simulation-studio/suites</td>
+            <td>Validate and align existing query contract (search/status/rule/page/limit)</td>
+            <td>Validate existing handler query parity with Day-5 contract</td>
+            <td>Paginated suite list for SM-02 controller</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /simulation-studio/suites/:id/runs/:runId/status</td>
+            <td>Add endpoint and DTO contract for polling</td>
+            <td>Add route and run-status handler</td>
+            <td>Status/phase/error_message/partialResults polling payload</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Phase 6: Day-5 Readiness and Risk Control</h3>
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Owner Layer</th>
+            <th>Concrete Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Run-start readiness gate</td>
+            <td class="mono">rule-studio/backend</td>
+            <td>Fail fast with clear 422/500 mapping when verifyImage cannot resolve digest for the selected rule version.</td>
+          </tr>
+          <tr>
+            <td>Run-status contract stability</td>
+            <td class="mono">rule-studio/backend + admin-service</td>
+            <td>Keep status enum and phase values stable for Screen-6 polling; ensure terminal states are returned consistently.</td>
+          </tr>
+          <tr>
+            <td>Platform dependency checkpoint</td>
+            <td class="mono">plan/ops dependency</td>
+            <td>Confirm at least one pullable rule processor image in Docker Hub namespace before Day-5 smoke tests.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Standards and Constraints for M1</h3>
+      <ul>
+        <li>Keep existing endpoint behavior stable for current suites CRUD methods.</li>
+        <li>Use class-validator DTOs and ApiSwagger decorators consistently in Rule Studio.</li>
+        <li>Use SetOptionsBodyAndParams route registration style in Admin Service.</li>
+        <li>Keep tenant scoping mandatory in all admin reads and writes.</li>
+        <li>Use structured error handling through existing ErrorHandler and HttpException patterns.</li>
+        <li>No schema migration changes in fixes-m1; this scope is API and service implementation only.</li>
+      </ul>
+    </section>
+
+    <section id="test-plan">
+      <h2>Test Plan for M1 Endpoints <a class="back-top" href="#top">Back to top</a></h2>
+      <h3>Rule Studio Backend Tests</h3>
+      <ol>
+        <li>Controller tests for each new endpoint validating status codes and response contracts.</li>
+        <li>Service tests ensuring payload normalization for draft, run, and run-status endpoints.</li>
+        <li>AdminServiceClient tests for URL path construction and query mapping.</li>
+      </ol>
+
+      <h3>Admin Service Tests</h3>
+      <ol>
+        <li>Route-level tests for new simulation-studio endpoints and privilege enforcement.</li>
+        <li>Logic tests for draft update behavior and validation errors, including PUT draft alias mapping to PATCH internals.</li>
+        <li>Generate context tests for happy path and 422 error envelope format.</li>
+        <li>Run-start contract test validating saveIterationTransactional and dispatch response shape.</li>
+        <li>Run-status contract test validating status/phase/error_message/partialResults payload shape.</li>
+      </ol>
+
+      <h3>Integration Smoke Tests</h3>
+      <ol>
+        <li>Rule Studio to Admin round trip for each new endpoint path due through 1 June.</li>
+        <li>Wizard-critical flow smoke sequence: POST suites, PUT draft, POST generate/context, POST run, GET run status.</li>
+        <li>TXTP flow smoke sequence: txtp-types, schema, sample.</li>
+        <li>List flow smoke sequence: GET suites with search/status/rule filters.</li>
+      </ol>
+    </section>
+
+    <section id="dod">
+      <h2>Definition of Done for Fixes M1 <a class="back-top" href="#top">Back to top</a></h2>
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Done Criteria</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Endpoint coverage</td>
+            <td>All 12 endpoints listed in this document (through Day 5 / 1 June) are present with documented contracts in Rule Studio and Admin Service.</td>
+          </tr>
+          <tr>
+            <td>Compatibility</td>
+            <td>Existing suites CRUD behavior remains unchanged for existing consumers.</td>
+          </tr>
+          <tr>
+            <td>Validation</td>
+            <td>Request validation and response shapes follow current DTO and error patterns.</td>
+          </tr>
+          <tr>
+            <td>Tests</td>
+            <td>New and updated tests pass in both repositories with no regression in existing suites tests.</td>
+          </tr>
+          <tr>
+            <td>Branch policy</td>
+            <td>Changes are implemented only on feat-paysys-sim-studio-fixes-m1 in both repositories.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note danger">
+        Explicit out-of-scope for this revision: Day-6 and later work such as orchestrator internals, appendRunResult flow, results endpoints, and run-history filter endpoints.
+      </div>
+    </section>
+
+    <section id="pr91-findings">
+      <h2>PR91 Forensics for Endpoints 1 and 2 <a class="back-top" href="#top">Back to top</a></h2>
+      <div class="note warn">
+        PR91 contains equivalent registry-fetch behavior, but not the same public simulation-studio contract. Functionality can be reused; endpoint contracts still require a compatibility surface in fixes-m1.
+      </div>
+
+      <h3>Evidence Found in PR91</h3>
+      <ul>
+        <li>PR91 head commit is <span class="mono">4b424e1 feat: multitenant apis for dockerhub</span>, and changed files are isolated to a DockerHub module and tests (no simulation-studio registry controller contract added).</li>
+        <li>Controller contract in PR91 is <span class="mono">@Controller('dockerhub')</span> with <span class="mono">@Get('/api/rules')</span> and <span class="mono">@Get('/api/tags')</span>.</li>
+        <li>Tags endpoint requires query parameter <span class="mono">rule</span> via <span class="mono">@ApiQuery({ name: 'rule', required: true })</span>, not a path param.</li>
+        <li>Response DTOs are wrapper objects: repositories return <span class="mono">{ rules: [...], count }</span>, tags return <span class="mono">{ rule, tags: [...], count }</span>.</li>
+        <li>Tenant behavior is already multi-tenant via env-driven tenant DockerHub credentials and JWT tenant claim usage.</li>
+      </ul>
+
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>PR91 Evidence File</th>
+            <th>Evidence Detail</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">.pr-worktrees/rule-studio-pr91/backend/src/services/dockerhub/dockerhub.controller.ts</td>
+            <td class="mono">13 (@Controller('dockerhub')), 18 (@Get('/api/rules')), 31 (@Get('/api/tags')), 33 (@ApiQuery rule)</td>
+          </tr>
+          <tr>
+            <td class="mono">.pr-worktrees/rule-studio-pr91/backend/src/services/dockerhub/dto/dockerhub.dto.ts</td>
+            <td class="mono">20-25 (repositories response wrapper), 39-47 (tags response wrapper)</td>
+          </tr>
+          <tr>
+            <td class="mono">.pr-worktrees/rule-studio-pr91/backend/src/services/dockerhub/tenant-config.service.ts</td>
+            <td class="mono">56-58 (tenant env config lookup), 81-84 (tenant credential guard)</td>
+          </tr>
+          <tr>
+            <td class="mono">.pr-worktrees/rule-studio-pr91 (git show --name-only HEAD)</td>
+            <td class="mono">4b424e1 changed DockerHub module files and tests only</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Endpoint Equivalence Verdict</h3>
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>Planned Endpoint (Fixes M1)</th>
+            <th>PR91 Candidate Contract</th>
+            <th>Verdict</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">GET /api/v1/simulation-studio/registry/repos</td>
+            <td class="mono">GET /api/v1/dockerhub/api/rules (module route: /dockerhub/api/rules)</td>
+            <td><span class="badge b-partial">Partial</span></td>
+            <td>Behavior overlaps (list repos/rules), but path namespace and response envelope differ from planned simulation-studio registry contract.</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /api/v1/simulation-studio/registry/repos/:repo/tags</td>
+            <td class="mono">GET /api/v1/dockerhub/api/tags?rule=&lt;repo&gt; (module route: /dockerhub/api/tags)</td>
+            <td><span class="badge b-partial">Partial</span></td>
+            <td>Behavior overlaps (tag listing), but parameter form differs (path param vs query param) and response shape uses wrapper object.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Fixes M1 Scope Correction (Based on PR91)</h3>
+      <div class="note ok">
+        Recommended decision: <strong>do not skip endpoints 1 and 2 completely</strong>; instead, implement them as compatibility adapter routes in Rule Studio that reuse DockerHub service logic.
+      </div>
+      <ul>
+        <li>Keep planned public simulation-studio paths for backward compatibility with M1 contract and wizard flow.</li>
+        <li>For endpoints 1 and 2, add Rule Studio adapter handlers that call existing DockerHub service methods and map output shape to simulation-studio registry response DTOs.</li>
+        <li>Remove Admin Service implementation work for endpoints 1 and 2 from fixes-m1 scope (no evidence that PR91 required admin-side support for these two reads).</li>
+        <li>Retain all other missing endpoint work in both repositories unchanged.</li>
+      </ul>
+    </section>
+
+    <section id="pr374-95-92-findings">
+      <h2>PR374, PR95, PR92 Forensics <a class="back-top" href="#top">Back to top</a></h2>
+      <div class="note warn">
+        PR374 and PR92 implement substantial suites CRUD/list foundations, but they do not complete the missing run and context contracts due by 1 June. PR95 is frontend-focused and does not add backend simulation-studio endpoints.
+      </div>
+
+      <h3>Evidence Summary by PR</h3>
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>PR</th>
+            <th>Commit(s)</th>
+            <th>Key Evidence</th>
+            <th>Coverage Signal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">admin-service PR374</td>
+            <td class="mono">842864a, 27be838</td>
+            <td class="mono">src/router.ts:460-473, src/app.controller.ts:1744-1872, src/repositories/simulation-studio/suites.repository.ts:13-38, 231</td>
+            <td>Implements POST/GET/GET by id/PATCH for suites and advanced filtering; supports wizard_progress persistence through PATCH.</td>
+          </tr>
+          <tr>
+            <td class="mono">rule-studio PR92</td>
+            <td class="mono">abf210b, c536c72</td>
+            <td class="mono">backend/src/services/simulation-studio/simulation-studio.controller.ts:20, 25, 47, 62, 78; backend/src/services/admin-service-client.ts:519-542</td>
+            <td>Adds simulation-studio module with suites CRUD/list pass-through including PATCH alternate for draft-style updates.</td>
+          </tr>
+          <tr>
+            <td class="mono">rule-studio PR95</td>
+            <td class="mono">1c85a1b, 565588b</td>
+            <td class="mono">frontend/src/pages/SimStudio/useSimStudioController.tsx:21, frontend/src/hooks/SimStudio/useCreateSimSuiteController.tsx:57, 73, frontend/src/routes/index.tsx:162, 169, backend/src/app.module.ts (no simulation-studio module)</td>
+            <td>Frontend V1 scaffold with mock/local storage flow and /sim-studio routes; no new backend simulation-studio API contract surface.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Endpoint Equivalence Verdict (Against Day-1 to Day-5 Plan)</h3>
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>Planned Endpoint</th>
+            <th>PR Coverage</th>
+            <th>Verdict</th>
+            <th>Decision for Fixes M1</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">POST /api/v1/simulation-studio/suites</td>
+            <td>PR92 + PR374</td>
+            <td><span class="badge b-done">Equivalent</span></td>
+            <td>Keep as implemented baseline; no reimplementation.</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /api/v1/simulation-studio/suites/:id</td>
+            <td>PR92 + PR374</td>
+            <td><span class="badge b-done">Equivalent</span></td>
+            <td>Keep as implemented baseline; no reimplementation.</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /api/v1/simulation-studio/suites</td>
+            <td>PR92 + PR374</td>
+            <td><span class="badge b-done">Equivalent</span></td>
+            <td>Keep as implemented baseline; only harmonize query naming if needed by FE contract.</td>
+          </tr>
+          <tr>
+            <td class="mono">PUT /api/v1/simulation-studio/suites/:id/draft</td>
+            <td>PR92 + PR374 (PATCH /suites/:id)</td>
+            <td><span class="badge b-partial">Partial</span></td>
+            <td>Add a compatibility alias route for PUT draft mapped to existing PATCH persistence behavior.</td>
+          </tr>
+          <tr>
+            <td class="mono">GET registry/txtp + POST generate/context + POST run + GET run status</td>
+            <td>Not covered by PR374/PR95/PR92</td>
+            <td><span class="badge b-missing">Missing</span></td>
+            <td>Retain planned implementation work (with PR91 and existing-code reuse where applicable).</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Scope Correction After PR374, PR95, PR92 Review</h3>
+      <div class="note ok">
+        Recommended decision: <strong>reuse suites CRUD/list and PATCH persistence already delivered in PR374 and PR92</strong>, and focus new fixes-m1 work on compatibility aliases plus still-missing registry, context generation, run, and run-status contracts.
+      </div>
+      <ul>
+        <li>Do not duplicate suites create/get/list backend logic from PR374 and PR92.</li>
+        <li>Treat PUT draft as a compatibility contract layer over existing PATCH behavior.</li>
+        <li>Do not count PR95 as backend endpoint delivery; treat it as frontend scaffolding input only.</li>
+        <li>Keep Day-6 and later orchestration internals out of this report scope, as already stated in DoD out-of-scope notes.</li>
+      </ul>
+    </section>
+
+    <section id="contract-fixes-retained">
+      <h2>Contract Compliance Fixes for Retained Endpoints <a class="back-top" href="#top">Back to top</a></h2>
+      <div class="note danger">
+        The endpoints below are already implemented and are being kept, but they are not fully aligned with planned fixes-m1 contracts. These are mandatory alignment fixes.
+      </div>
+
+      <table class="tight">
+        <thead>
+          <tr>
+            <th>Retained Endpoint</th>
+            <th>Contract Gap</th>
+            <th>Evidence</th>
+            <th>Required Fix in Fixes-M1</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">POST /api/v1/simulation-studio/suites</td>
+            <td>
+              Request constraints and response envelope are not aligned with planned contract expectations.
+              Planning expects name max 120 and description max 500, while current validation is stricter.
+            </td>
+            <td class="mono">implementation_plan.md:290-291, 821-822; admin-service/src/interface/simulation-suites.interface.ts:16-17; admin-service/src/app.controller.ts:1744-1762</td>
+            <td>Align max lengths to planned limits and normalize Rule Studio response mapping to the public contract DTO.</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /api/v1/simulation-studio/suites/:id</td>
+            <td>
+              Planned summary contract expects suite plus summary-linked structures, while current retained path is suite-row centric and requires compatibility mapping for wizard summary consumers.
+            </td>
+            <td class="mono">implementation_plan.md:561; admin-service/src/repositories/simulation-studio/suites.repository.ts:103-121; rule-studio/backend/src/services/simulation-studio/dto/index.ts:103-119</td>
+            <td>Add response contract adapter in Rule Studio service/controller to guarantee planned summary payload shape.</td>
+          </tr>
+          <tr>
+            <td class="mono">GET /api/v1/simulation-studio/suites</td>
+            <td>
+              Planned query contract uses search/status/rule/page/limit. Retained implementation currently uses rule_name/txtp/updated_from/updated_to/offset/limit.
+            </td>
+            <td class="mono">implementation_plan.md:657; rule-studio/backend/src/services/simulation-studio/simulation-studio.controller.ts:31-38; rule-studio/backend/src/services/admin-service-client.ts:522-528</td>
+            <td>Support both parameter sets (rule/page aliases) and normalize output to the agreed paginated contract for frontend callers.</td>
+          </tr>
+          <tr>
+            <td class="mono">PUT /api/v1/simulation-studio/suites/:id/draft (kept via PATCH fallback)</td>
+            <td>
+              Dedicated PUT draft contract is not present; only PATCH suites/:id exists. Planned draft contract expects wizard-step focused payload semantics.
+            </td>
+            <td class="mono">rule-studio/backend/src/services/simulation-studio/simulation-studio.controller.ts:78; admin-service/src/router.ts:472; implementation_plan.md:491, 525</td>
+            <td>Add PUT draft compatibility endpoint and map payload to existing PATCH persistence without duplicating repository logic.</td>
+          </tr>
+          <tr>
+            <td class="mono">All retained public simulation-studio endpoints</td>
+            <td>
+              Planned public namespace is /api/v1/simulation-studio/*; retained controller route is currently defined as simulation-studio without explicit api/v1 in controller path.
+            </td>
+            <td class="mono">implementation_plan.md:1807; rule-studio/backend/src/services/simulation-studio/simulation-studio.controller.ts:20</td>
+            <td>Guarantee public route compatibility at controller or gateway mapping level and add contract tests for the exact public path.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note ok">
+        Priority order for fixes-m1: (1) draft alias contract, (2) suites list query aliases and response normalization, (3) create endpoint limits and envelope alignment, (4) suite-by-id summary compatibility payload, (5) explicit public route compatibility checks.
+      </div>
+    </section>
+
+    <div class="footer">Fixes M1 plan document generated from read-only analysis of plan folder documents.</div>
+  </div>
+
+  <script>
+    const THEME_STORAGE_KEY = "fixes-m1-plan-theme";
+    const themeToggle = document.getElementById("theme-toggle");
+
+    function applyTheme(theme) {
+      const normalized = theme === "dark" ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", normalized);
+      if (themeToggle) {
+        const isDark = normalized === "dark";
+        themeToggle.textContent = isDark ? "Light mode" : "Dark mode";
+        themeToggle.setAttribute("aria-pressed", isDark ? "true" : "false");
+      }
+    }
+
+    function initializeTheme() {
+      let initialTheme = "light";
+      try {
+        const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+        if (storedTheme === "light" || storedTheme === "dark") {
+          initialTheme = storedTheme;
+        } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          initialTheme = "dark";
+        }
+      } catch (error) {
+        initialTheme = "light";
+      }
+      applyTheme(initialTheme);
+    }
+
+    if (themeToggle) {
+      themeToggle.addEventListener("click", () => {
+        const currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        const nextTheme = currentTheme === "dark" ? "light" : "dark";
+        applyTheme(nextTheme);
+        try {
+          localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+        } catch (error) {
+          // Ignore storage issues.
+        }
+      });
+    }
+
+    initializeTheme();
+  </script>
+</body>
+</html>
